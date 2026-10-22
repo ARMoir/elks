@@ -181,6 +181,10 @@ ifndef CONFIG_SYS_NO_BININIT
 	TAGS += :init|
 endif
 
+ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+	TAGS += :ibmfetch|
+endif
+
 TAGS += :end
 
 ###############################################################################
