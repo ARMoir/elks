@@ -34,8 +34,12 @@ jobs:
           set -euo pipefail
           . ./env.sh
           cp ibmpc-1440-ps2diag.config .config
-          ./buildext.sh microwindows
+          # First build ELKS and install its C library/runtime specs.
           make all
+          # Nano-X links against the ELKS runtime, so it must be built second.
+          ./buildext.sh microwindows
+          # Repackage the FAT floppy now that Nano-X binaries exist.
+          make -C image
           test -f image/fd1440.img
           test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
           grep -q '^#hma=kernel$' target/bootopts
