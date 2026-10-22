@@ -1,11 +1,8 @@
 name: cross
 
+# Optional toolchain rebuild; never run automatically on source pushes.
 on:
-  push:
-    paths:
-      - '.github/workflows/cross.yml'
-      - '!.github/workflows/ow-libc.yml'
-      - 'tools/*'
+  workflow_dispatch:
 
 jobs:
   build:
