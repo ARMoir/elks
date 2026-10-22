@@ -16,6 +16,10 @@ read errors also appeared on multiple disks.
 - **Floppy:** disable track caching and use one-sector BIOS reads on
   floppy drives for a controlled comparison with previously failing
   multi-sector reads. This sacrifices speed to isolate the issue.
+- **Startup:** diagnostic images add `export MOUSE_TYPE=ps2` to `/etc/profile`
+  and `rm -f /tmp/nxsock` to `/etc/rc.sys`. The socket is only
+  removed at boot; a running Nano-X session is never disturbed by
+  repeated app launches.
 - **Mouse:** read the existing 8042 command byte and preserve the BIOS's
   settings (including keyboard and translation state). Change only
   the bits needed to enable the auxiliary mouse port and IRQ 12.
@@ -57,7 +61,7 @@ make all
 3. With a native PS/2 mouse connected **before power-on**, enter:
 
    ```sh
-   export MOUSE_TYPE=ps2
+   # MOUSE_TYPE=ps2 is already set by the diagnostic image.
    mouse
    ```
 
@@ -65,7 +69,7 @@ make all
    press Ctrl+C and try:
 
    ```sh
-   rm -f /tmp/nxsock
+   # /tmp/nxsock was cleaned at boot; no repeated cleanup required.
    nxstart
    ```
 
