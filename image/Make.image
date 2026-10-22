@@ -51,6 +51,8 @@ ifdef CONFIG_IBM_PS2_DIAGNOSTIC
 	printf '\n# IBM PS/2 hardware mouse defaults.\nexport MOUSE_TYPE=ps2\n' >> $(DESTDIR)/etc/profile
 	# Only remove an abandoned Nano-X socket at system boot, not before every launch.
 	printf '\n# Remove stale Nano-X socket left by a previous crash or reboot.\nrm -f /tmp/nxsock\n' >> $(DESTDIR)/etc/rc.sys
+	# Boot-time system summary, after normal rc.sys setup and date display.
+	printf '\n# Display system information on the IBM console during boot.\n/bin/elkfetch\n' >> $(DESTDIR)/etc/rc.sys
 endif
 	-chmod 777 $(DESTDIR)/tmp
 	find $(DESTDIR) -name .keep -delete
