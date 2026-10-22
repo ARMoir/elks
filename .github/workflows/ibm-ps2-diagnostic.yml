@@ -39,6 +39,8 @@ jobs:
           test -f image/fd1440.img
           test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
           grep -q '^#hma=kernel$' target/bootopts
+          grep -q '^export MOUSE_TYPE=ps2$' target/etc/profile
+          grep -q '^rm -f /tmp/nxsock$' target/etc/rc.sys
 
       - name: Upload 1.44 MB IBM PS/2 test image
         uses: actions/upload-artifact@v4
