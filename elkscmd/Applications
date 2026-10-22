@@ -96,6 +96,7 @@ sys_utils/ps :::uptime          :sysutil                        :128k   :1440k
 sys_utils/makeboot              :sysutil        :360k
 sys_utils/man                   :sysutil                                :1440k
 sys_utils/meminfo       :sash   :sysutil        :360k           :128k
+sys_utils/elkfetch              :sysutil                                :ibmfetch
 sys_utils/mouse                 :sysutil                 :1200c     :1440k
 sys_utils/passwd                :sysutil                :1200k
 #sys_utils/shutdown :::reboot    :sysutil            :720k       :128k
