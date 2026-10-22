@@ -493,6 +493,14 @@ static int BFPROC do_readwrite(struct drive_infot *drivep, sector_t start, char 
 
     /* limit I/O to requested sector count*/
     if (this_pass > count) this_pass = count;
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+    /*
+     * Real-hardware test: use single-sector BIOS floppy reads rather
+     * than multi-sector operations. Normal ELKS builds are unaffected.
+     */
+    if (cmd == READ && drivep - drive_info >= DRIVE_FD0)
+        this_pass = 1;
+#endif
     if (cmd == READ) debug_bios("bioshd(%x): read lba %ld count %d\n",
                         drive, start, this_pass);
 
