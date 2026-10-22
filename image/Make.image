@@ -44,6 +44,10 @@ copyrom: romfs
 template:
 	-rm -rf $(DESTDIR)
 	cp -a $(TEMPLATE_DIR) $(DESTDIR)
+ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+	# Kernel HMA mode prevented boot on original IBM PS/2 hardware.
+	sed -i 's/^hma=kernel$/#hma=kernel/' $(DESTDIR)/bootopts
+endif
 	-chmod 777 $(DESTDIR)/tmp
 	find $(DESTDIR) -name .keep -delete
 	$(MAKE) -C $(ELKSCMD_DIR) -f Make.install install "CONFIG=$(CONFIG)"
