@@ -18,7 +18,11 @@
 #include <arch/irq.h>
 
 #define IRQ_MOUSE       12          /* mouse interrupt, may conflict with networking */
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+#define MAX_RETRIES     20000       /* allow slower real 8042 controllers */
+#else
 #define MAX_RETRIES     60
+#endif
 
 /* 8042 ports */
 #define DATA            0x60
@@ -32,6 +36,12 @@
 
 /* 8042 commands using outb() */
 #define SET_CTRL_REG    0x60        /* set control register byte in 8042 */
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+#define GET_CTRL_REG    0x20        /* read the existing 8042 command byte */
+#define CCB_MOUSE_IRQ   0x02        /* IRQ12 enabled */
+#define CCB_MOUSE_OFF   0x20        /* auxiliary interface disabled */
+static unsigned char original_ccb;
+#endif
 #define SEND_AUX_CMD    0xd4        /* send command to aux device (mouse) */
 #define DISABLE_AUX     0xa7        /* disable aux (mouse) port */
 #define ENABLE_AUX      0xa8        /* enable aux (mouse) port */
@@ -63,6 +73,30 @@ static void poll_aux_status(void)
     } while (--retries);
 }
 
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+/*
+ * On IBM PS/2 hardware, don't overwrite the BIOS's entire 8042
+ * command byte with constants taken from a PC-compatible emulator.
+ * Read and retain it so keyboard IRQ, translation and platform bits
+ * survive mouse enable/disable. A bounded wait avoids a permanent
+ * spin if the controller does not respond.
+ */
+static int get_ctrl_reg(unsigned char *value)
+{
+    int retries = MAX_RETRIES;
+
+    poll_aux_status();
+    outb_p(GET_CTRL_REG, COMMAND);
+    while (retries-- > 0) {
+        if (inb_p(STATUS) & OBUF_FULL) {
+            *value = inb_p(DATA);
+            return 0;
+        }
+    }
+    return -EIO;
+}
+#endif
+
 /* set 8042 control register bits */
 static void set_ctrl_reg(int cmd)
 {
@@ -86,8 +120,17 @@ static void send_aux_cmd(int cmd)
 static void ps2_mouse_disable(void)
 {
     send_aux_cmd(AUX_DISABLE_DEV);      /* stop mouse packets */
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+    set_ctrl_reg(original_ccb);         /* restore BIOS's keyboard/controller state */
+#else
     set_ctrl_reg(DISABLE_INTS);         /* disable mouse interrupts */
+#endif
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+    if (original_ccb & CCB_MOUSE_OFF)
+        outb_p(DISABLE_AUX, COMMAND);   /* restore previous disabled state */
+#else
     outb_p(DISABLE_AUX, COMMAND);       /* disable aux (mouse) port */
+#endif
     poll_aux_status();
 }
 
@@ -96,7 +139,11 @@ static void ps2_mouse_enable(void)
     poll_aux_status();
     outb_p(ENABLE_AUX, COMMAND);        /* enable aux (mouse) port */
     send_aux_cmd(AUX_ENABLE_DEV);       /* enable mouse (aux device) */
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+    set_ctrl_reg((original_ccb | CCB_MOUSE_IRQ) & ~CCB_MOUSE_OFF);
+#else
     set_ctrl_reg(ENABLE_INTS);          /* enable mouse interrupts */
+#endif
 }
 
 /* IRQ handler */
@@ -136,8 +183,22 @@ static int ps2_open(struct tty *tty)
         return err;
     }
 
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+    printk("ps2diag: IRQ12 ready, reading 8042 CCB\n");
+    err = get_ctrl_reg(&original_ccb);
+    if (err) {
+        printk("ps2diag: 8042 CCB read failed (%d)\n", err);
+        tty_freeq(tty);
+        free_irq(IRQ_MOUSE);
+        return err;
+    }
+    printk("ps2diag: 8042 CCB=%x, enabling mouse\n", original_ccb);
+#endif
     tty->usecount = 1;
     ps2_mouse_enable();
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+    printk("ps2diag: mouse enable finished\n");
+#endif
 
     return 0;
 }
@@ -145,6 +206,9 @@ static int ps2_open(struct tty *tty)
 static void ps2_release(struct tty *tty)
 {
     if (--tty->usecount == 0) {
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
+        printk("ps2diag: closing mouse\n");
+#endif
         ps2_mouse_disable();
         free_irq(IRQ_MOUSE);
         tty_freeq(tty);
