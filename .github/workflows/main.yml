@@ -4,6 +4,13 @@ name: IBM PS/2 floppy (manual)
 # The actual ELKS sources are checked out from ibm-ps2-hardware.
 on:
   workflow_dispatch:
+  # A build-request file is the only push event permitted to start this job.
+  # Routine source commits never trigger an image build.
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/manual-build-requests/ibm-ps2.txt'
 
 permissions:
   contents: read

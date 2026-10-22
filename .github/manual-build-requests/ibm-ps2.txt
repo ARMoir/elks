@@ -1,0 +1,4 @@
+# Manual IBM PS/2 ELKS floppy build request
+# Requested by user 2026-10-22.
+# Edit this file only to explicitly request another build.
+request: ibm-ps2-2026-10-22-1
