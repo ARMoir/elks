@@ -16,6 +16,11 @@ read errors also appeared on multiple disks.
 - **Floppy:** disable track caching and use one-sector BIOS reads on
   floppy drives for a controlled comparison with previously failing
   multi-sector reads. This sacrifices speed to isolate the issue.
+- **Welcome screen:** a compact native C `/bin/elkfetch` program prints an
+  ELKS ASCII logo, actual `uname()` values, available RAM/XMS statistics
+  from `/dev/kmem`, shell, and configured mouse mode. Its invocation is
+  appended to `/etc/rc.sys` only for the diagnostic build, after the
+  ordinary date display. It does **not** touch mouse hardware.
 - **Startup:** diagnostic images add `export MOUSE_TYPE=ps2` to `/etc/profile`
   and `rm -f /tmp/nxsock` to `/etc/rc.sys`. The socket is only
   removed at boot; a running Nano-X session is never disturbed by
