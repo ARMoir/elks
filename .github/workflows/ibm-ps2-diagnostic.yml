@@ -1,0 +1,48 @@
+name: IBM PS/2 hardware diagnostic floppy
+
+on:
+  push:
+    branches:
+      - ibm-ps2-hardware
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing texinfo libncurses5-dev libelf-dev ncompress nasm
+
+      - name: Cache ELKS 16-bit cross toolchain
+        id: cross-cache
+        uses: actions/cache@v4
+        with:
+          path: cross
+          key: ibm-ps2-cross-${{ hashFiles('tools/*') }}-${{ runner.os }}
+
+      - name: Build cross toolchain
+        if: steps.cross-cache.outputs.cache-hit != 'true'
+        run: tools/build.sh
+
+      - name: Build IBM PS/2 diagnostic FAT floppy
+        shell: bash
+        run: |
+          set -euo pipefail
+          . ./env.sh
+          cp ibmpc-1440-ps2diag.config .config
+          ./buildext.sh microwindows
+          make all
+          test -f image/fd1440.img
+          test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
+          grep -q '^#hma=kernel$' target/bootopts
+
+      - name: Upload 1.44 MB IBM PS/2 test image
+        uses: actions/upload-artifact@v4
+        with:
+          name: elks-ibm-ps2-diagnostic-fd1440-fat
+          path: image/fd1440.img
+          if-no-files-found: error
