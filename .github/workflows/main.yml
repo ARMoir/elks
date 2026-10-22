@@ -1,169 +1,75 @@
-name: main
+name: IBM PS/2 floppy (manual)
 
+# This workflow must exist on the default branch for Run workflow to appear.
+# The actual ELKS sources are checked out from ibm-ps2-hardware.
 on:
-  push:
-    paths:
-      - '**'
-      - '!.github/workflows/cross.yml'
-#     - '!.github/workflows/ow-libc.yml'
-      - '!tools/*'
-#  pull_request:
-#    paths:
-#     - '**'
-#     - '!.github/workflows/cross.yml'
-#     - '!.github/workflows/ow-libc.yml'
-#     - '!tools/*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-
+  ibm_floppy:
+    name: Build one IBM PS/2 1.44 MB FAT floppy
     runs-on: ubuntu-22.04
-
-    env:
-      MAKEFLAGS: "-j$(sysctl -n hw.perflevel0.logicalcpu 2>/dev/null || nproc 2>/dev/null || echo 2)"
-
+    timeout-minutes: 90
     steps:
-      - name: setup
+      - name: Check out IBM diagnostic branch
+        uses: actions/checkout@v4
+        with:
+          ref: ibm-ps2-hardware
+
+      - name: Install ELKS build prerequisites
         run: |
-            sudo apt-get update
-            sudo apt-get install -y --fix-missing texinfo libncurses5-dev libelf-dev ncompress nasm
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing texinfo libncurses5-dev libelf-dev ncompress nasm
 
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: cache
-        id: cache
+      - name: Cache 16-bit cross-compiler
+        id: toolchain-cache
         uses: actions/cache@v4
         with:
           path: cross
           key: cross-${{ hashFiles('tools/*') }}-${{ runner.os }}
 
-      - name: prepare
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: 'mkdir -p cross'
-
-      - name: cross
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Build 16-bit cross-compiler if needed
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
         run: tools/build.sh
 
-      - name: Open Watcom setup
-        uses: open-watcom/setup-watcom@v0
-        with:
-          version: "2.0-64"
-
-      - name: environ
+      - name: Build IBM PS/2 FAT floppy only
+        shell: bash
         run: |
-            echo $WATCOM
-            echo $INCLUDE
-            echo $PATH
+          set -euo pipefail
+          . ./env.sh
+          # Generate keyboard maps before building the kernel.
+          make -C elks/arch/i86/drivers/char/KeyMaps config.in
+          cp ibmpc-1440-ps2diag.config .config
+          # Turn our fixed .config into include/autoconf.h without prompting.
+          make include/autoconf.h
+          grep -q '^#define CONFIG_IBM_PS2_DIAGNOSTIC 1' include/autoconf.h
+          grep -q '^CONFIG_IMG_FD1440=y' .config
+          grep -q '^CONFIG_IMG_FAT=y' .config
 
-      - name: build
-        run: ./build.sh auto ext allimages
+          # Do not invoke build.sh auto ext allimages: that makes many images.
+          make -C libc all
+          make -C libc DESTDIR="$CROSSDIR" install
+          make kernel bootblocks
+          make -C elkscmd all
+          # Nano-X needs the ELKS libc installed before it can link.
+          ./buildext.sh microwindows
+          # Image generation occurs exactly once, for FD1440/FAT in .config.
+          make -C image
 
-      - name: upload
+          test -s target/bin/elkfetch
+          grep -q '^/bin/elkfetch$' target/etc/rc.sys
+          grep -q '^export MOUSE_TYPE=ps2$' target/etc/profile
+          grep -q '^#hma=kernel$' target/bootopts
+          grep -q '^rm -f /tmp/nxsock$' target/etc/rc.sys
+          test -f image/fd1440.img
+          test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
+
+      - name: Upload the one boot floppy image
         uses: actions/upload-artifact@v4
         with:
-          name: fd1440.img
+          name: elks-ibm-ps2-fd1440-fat
           path: image/fd1440.img
-
-      - name: upload2
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd360-minix.img
-          path: image/fd360-minix.img
-
-      - name: upload3
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd720-minix.img
-          path: image/fd720-minix.img
-
-      - name: upload4
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd1200-minix.img
-          path: image/fd1200-minix.img
-
-      - name: upload5
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd1440-minix.img
-          path: image/fd1440-minix.img
-
-      - name: upload6
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd2880-minix.img
-          path: image/fd2880-minix.img
-
-      - name: upload7
-        uses: actions/upload-artifact@v4
-        with:
-          name: hd32-minix.img
-          path: image/hd32-minix.img
-
-      - name: upload8
-        uses: actions/upload-artifact@v4
-        with:
-          name: hd32mbr-minix.img
-          path: image/hd32mbr-minix.img
-
-      - name: upload9
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd360-fat.img
-          path: image/fd360-fat.img
-
-      - name: upload10
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd720-fat.img
-          path: image/fd720-fat.img
-
-      - name: upload11
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd1200-fat.img
-          path: image/fd1200-fat.img
-
-      - name: upload12
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd1440-fat.img
-          path: image/fd1440-fat.img
-
-      - name: upload13
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd2880-fat.img
-          path: image/fd2880-fat.img
-
-      - name: upload14
-        uses: actions/upload-artifact@v4
-        with:
-          name: hd32-fat.img
-          path: image/hd32-fat.img
-
-      - name: upload15
-        uses: actions/upload-artifact@v4
-        with:
-          name: hd32mbr-fat.img
-          path: image/hd32mbr-fat.img
-
-      - name: upload16
-        uses: actions/upload-artifact@v4
-        with:
-          name: hd64-minix.img
-          path: image/hd64-minix.img
-
-      - name: upload17
-        uses: actions/upload-artifact@v4
-        with:
-          name: hd64mbr-minix.img
-          path: image/hd64mbr-minix.img
-
-      - name: upload18
-        uses: actions/upload-artifact@v4
-        with:
-          name: fd1232.img
-          path: image/fd1232.img
+          if-no-files-found: error
