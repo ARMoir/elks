@@ -35,27 +35,40 @@ read errors also appeared on multiple disks.
 
 These are **untested experimental changes**, not a confirmed mouse fix.
 
-## Automated test floppy
+## Manual IBM test floppy build (no automatic CI on commits)
 
-On the `ibm-ps2-hardware` branch, visit **Actions** and run
-**IBM PS/2 hardware diagnostic floppy**, or use the artifact attached to
-its successful branch build. Download
-`elks-ibm-ps2-diagnostic-fd1440-fat` and write its `fd1440.img`
-onto a known-good 1.44 MB floppy using raw image-writing software.
-The workflow validates size (1,474,560 bytes) and the HMA workaround.
+Only one workflow creates disk images in this fork:
+
+1. Open [Actions → IBM PS/2 floppy (manual)](https://github.com/ARMoir/elks/actions/workflows/main.yml).
+2. Click **Run workflow** and select the default branch (`master`).
+   The job itself checks out `ibm-ps2-hardware` source and configuration.
+3. When the run succeeds, download the `elks-ibm-ps2-fd1440-fat` artifact.
+4. Extract `fd1440.img` (1,474,560 bytes) and write it as a raw image
+   to a known-good 1.44 MB floppy.
+
+Commits **do not trigger builds**. The old broad `main` workflow, which
+built dozens of floppy and hard-disk variants, was replaced with this
+manual one-image pipeline. The redundant diagnostic workflow was removed.
+The optional `cross` toolchain CI is also manually triggered.
 
 ## Local build on Ubuntu / WSL
 
 Install build prerequisites described in `BUILD.md`, then:
 
 ```bash
-# From the repository root, after fetching the branch:
-tools/build.sh             # only required when cross-toolchain is absent
+# From the repository root of ibm-ps2-hardware:
+tools/build.sh                 # only if the cross toolchain does not exist
 . ./env.sh
+make -C elks/arch/i86/drivers/char/KeyMaps config.in
 cp ibmpc-1440-ps2diag.config .config
-./buildext.sh microwindows # installs Nano-X binaries into extapps/
-make all
-# Output: image/fd1440.img
+make include/autoconf.h
+make -C libc all
+make -C libc DESTDIR="$CROSSDIR" install
+make kernel bootblocks
+make -C elkscmd all
+./buildext.sh microwindows
+make -C image
+# Output: image/fd1440.img, no other disk-image variants
 ```
 
 ## Real-hardware test sequence
