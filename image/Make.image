@@ -46,7 +46,7 @@ template:
 	cp -a $(TEMPLATE_DIR) $(DESTDIR)
 ifdef CONFIG_IBM_PS2_DIAGNOSTIC
 	# Kernel HMA mode prevented boot on original IBM PS/2 hardware.
-	sed -i 's/^hma=kernel$/#hma=kernel/' $(DESTDIR)/bootopts
+	sed -i 's/^hma=kernel$$/#hma=kernel/' $(DESTDIR)/bootopts
 	# Export native PS/2 mouse protocol in login shells (rc.sys sources profile).
 	printf '\n# IBM PS/2 hardware mouse defaults.\nexport MOUSE_TYPE=ps2\n' >> $(DESTDIR)/etc/profile
 	# Only remove an abandoned Nano-X socket at system boot, not before every launch.
