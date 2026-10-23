@@ -30,6 +30,9 @@ fi
 
 #uname -snrm
 
+# Remove any stale Nano-X socket before interactive login.
+rm -f /tmp/nxsock
+
 date
 # display internal commands used
 #hash
