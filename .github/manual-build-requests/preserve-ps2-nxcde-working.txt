@@ -1,0 +1,1 @@
+Preserve exact CRT-tested CDE Nano-X image from Actions 40007901537; SHA-256 63293c83b53db1cd101801688d7dbe76e2418d60f8b9943a98c8a31af7a652db. No rebuild. Frozen source c3b17d95b06b4984f84fb5e2036d01b7a3ff9af0. Do not change prior releases.
