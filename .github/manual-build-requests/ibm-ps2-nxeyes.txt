@@ -4,3 +4,5 @@ Base: working 830-byte BIOS floppy with Nano-X and PS/2 mouse
 Add lightweight integer-only /bin/nxeyes and Eyes entry to nxstart launcher
 Do not modify archived working source or release
 Build one FAT12 1.44 MB experimental image and verify packaged nxeyes
+
+Retry: include nxcolors.h required for GR_COLOR_WHITE/BLACK (commit f265edc052b2dcb08bfa19f9957124ba9fcdb424).
