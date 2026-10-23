@@ -214,7 +214,9 @@ static void draw_panel(void)
                         !strcmp(apps[idx].label, "Eyes") ? 2 :
                         !strcmp(apps[idx].label, "Calculator") ? 3 : 4;
             draw_button(x, 55,
-                        !strcmp(apps[idx].label, "Calculator") ? "Calc" : apps[idx].label,
+                        !strcmp(apps[idx].label, "Calculator") ? "Calc" :
+                        !strcmp(apps[idx].label, "Terminal") ? "Term" :
+                        apps[idx].label,
                         glyph, 0);
         }
     }
