@@ -38,6 +38,7 @@ struct app_info {
 static const struct app_info candidates[] = {
     { "Terminal",   "/bin/nxterm"   },
     { "Eyes",       "/bin/nxeyes"   },
+    { "Files",      "/bin/nxfiles"  },
     { "Calculator", "/bin/nxcalc"   },
     { "Clock",      "/bin/nxclock"  },
     { "Tetris",     "/bin/nxtetris" },
@@ -212,6 +213,7 @@ static void draw_panel(void)
             /* Choice of pixel glyph independent of optional app order. */
             int glyph = !strcmp(apps[idx].label, "Terminal") ? 1 :
                         !strcmp(apps[idx].label, "Eyes") ? 2 :
+                        !strcmp(apps[idx].label, "Files") ? 0 :
                         !strcmp(apps[idx].label, "Calculator") ? 3 : 4;
             draw_button(x, 55,
                         !strcmp(apps[idx].label, "Calculator") ? "Calc" :
