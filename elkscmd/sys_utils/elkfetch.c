@@ -8,6 +8,7 @@
 #define __LIBC__
 #include <linuxmt/types.h>
 #include <linuxmt/mem.h>
+#include <linuxmt/segment.h>
 #include <arch/segment.h>
 #include <arch/param.h>
 #include <stdio.h>
