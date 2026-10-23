@@ -1,0 +1,6 @@
+IBM PS/2 Nano-X installed-only X applications menu experiment
+Checkout branch ibm-ps2-nxeyes-menu-filter, based on previous moved-window XEyes fix.
+On nxstart launch, check access(app_path, F_OK) for known programs in /bin.
+Only show installed applications, compact menu table and dimensions, retain Quit.
+Keep the 830-byte stack, BIOS floppy, PS/2 mouse, elkfetch and automatic rm -f /tmp/nxsock.
+Build separate experimental FAT12 1.44MB floppy image; do not alter verified release.
