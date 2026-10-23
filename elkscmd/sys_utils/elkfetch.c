@@ -1,13 +1,16 @@
 /*
  * elkfetch - tiny Neofetch-style system summary for ELKS.
  *
- * Data comes from uname(), libc user/TTY settings, and kernel memory
- * statistics. CPU and video hardware are not claimed to be probed.
+ * Data comes from uname(), libc user/TTY settings, filesystem stats and
+ * kernel memory statistics. The kernel reports its boot-probed CPU class
+ * and counts tasks; no BIOS calls or hardware probing occur in elkfetch.
  * No mouse device is opened, and no BIOS hardware calls are made.
  */
 #define __LIBC__
 #include <linuxmt/types.h>
 #include <linuxmt/mem.h>
+#include <linuxmt/kernel.h>
+#include <linuxmt/limits.h>
 #include <linuxmt/segment.h>
 #include <arch/segment.h>
 #include <arch/param.h>
@@ -19,6 +22,7 @@
 #include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/utsname.h>
+#include <sys/mount.h>
 
 #define INFO_PREFIX "                               "
 
@@ -75,11 +79,61 @@ static int read_uptime(unsigned long *seconds)
     return 0;
 }
 
+/* This one 4-byte ioctl returns boot-detected CPU type and live tasks
+ * without transferring task_struct records into tiny ELKS user stacks. */
+static int read_system_info(struct mem_system_info *info)
+{
+    int fd = open("/dev/kmem", O_RDONLY | O_ALT);
+    int rc;
+
+    if (fd < 0)
+        return -1;
+    rc = ioctl(fd, MEM_GETSYSINFO, info);
+    close(fd);
+    return rc;
+}
+
+static const char *cpu_name(unsigned int cpu)
+{
+    switch (cpu) {
+    case CPU_8088: return "8088";
+    case CPU_8086: return "8086";
+    case CPU_NECV20: return "NEC V20";
+    case CPU_NECV30: return "NEC V30";
+    case CPU_80188: return "80188";
+    case CPU_80186: return "80186";
+    case CPU_80286: return "80286";
+    case CPU_80386: return "80386+";
+    default: return "unknown x86";
+    }
+}
+
+/* Similar to 'mount' with UF_NOFREESPACE: no FAT free-space walk. */
+static const char *root_filesystem(void)
+{
+    struct statfs fs;
+    unsigned int i;
+    for (i = 0; i < NR_SUPER; ++i) {
+        if (ustatfs(i, &fs, UF_NOFREESPACE) == 0 &&
+            !strcmp(fs.f_mntonname, "/")) {
+            switch (fs.f_type) {
+            case FST_MSDOS: return "FAT (MS-DOS)";
+            case FST_MINIX: return "MINIX";
+            case FST_ROMFS: return "ROMFS";
+            default: return "other";
+            }
+        }
+    }
+    return "unavailable";
+}
+
 int main(void)
 {
     struct utsname os;
     struct mem_usage mu;
+    struct mem_system_info system_info;
     struct passwd *pw;
+    char build_version[35];
     const char *username;
     const char *sysname;
     const char *release;
@@ -93,6 +147,7 @@ int main(void)
     int have_os = (uname(&os) == 0);
     int have_mem = (read_memory(&mu) == 0);
     int have_uptime = (read_uptime(&seconds) == 0);
+    int have_system = (read_system_info(&system_info) == 0);
 
     pw = getpwuid(getuid());
     username = pw && pw->pw_name ? pw->pw_name : getenv("USER");
@@ -113,6 +168,11 @@ int main(void)
         tty = "unknown";
     if (!term || !*term)
         term = "unknown";
+
+    /* Keep the kernel build line inside a narrow 80-column console. */
+    strncpy(build_version, have_os ? os.version : "unavailable",
+        sizeof(build_version) - 1);
+    build_version[sizeof(build_version) - 1] = '\0';
 
     header_len = strlen(username) + strlen(hostname) + 1;
     if (header_len > 39)
@@ -138,6 +198,16 @@ int main(void)
         puts("   |_____|_____|_|\\_\\|____/    Uptime: unavailable");
     }
 
+    printf(INFO_PREFIX "Kernel build: %s\n", build_version);
+    if (have_system)
+        printf(INFO_PREFIX "CPU (probe): %s\n", cpu_name(system_info.cpu_class));
+    else
+        puts(INFO_PREFIX "CPU (probe): unavailable");
+    if (have_system)
+        printf(INFO_PREFIX "Processes: %u\n", system_info.processes);
+    else
+        puts(INFO_PREFIX "Processes: unavailable");
+    printf(INFO_PREFIX "Root FS: %s\n", root_filesystem());
     if (have_mem)
         printf(INFO_PREFIX "RAM: %u/%u KB used\n",
             mu.main_used, mu.main_used + mu.main_free);
