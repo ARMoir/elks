@@ -68,6 +68,7 @@ jobs:
           test -s target/bin/elkfetch
           ! grep -q 'Kernel build:' elkscmd/sys_utils/elkfetch.c
           grep -qx '/bin/elkfetch' target/root/.profile
+          grep -qx 'rm -f /tmp/nxsock' target/etc/rc.sys
           grep -qx 'export MOUSE_TYPE=ps2' target/etc/profile
           grep -qx '#hma=kernel' target/bootopts
           ! grep -qx 'root=df0' target/bootopts
@@ -80,6 +81,8 @@ jobs:
           # Confirm the options and login profile actually made it into FAT12.
           mcopy -i image/fd1440.img ::/bootopts "$RUNNER_TEMP/ps2-kstack-bootopts"
           mcopy -i image/fd1440.img ::/root/.profile "$RUNNER_TEMP/ps2-kstack-profile"
+          mcopy -i image/fd1440.img ::/etc/rc.sys "$RUNNER_TEMP/ps2-kstack-rcsys"
+          tr -d '\\r' < "$RUNNER_TEMP/ps2-kstack-rcsys" | grep -qx 'rm -f /tmp/nxsock'
           ! tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-bootopts" | grep -qx 'root=df0'
           ! tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-bootopts" | grep -qx 'disable=fd0'
           tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-profile" | grep -qx '/bin/elkfetch'
