@@ -46,7 +46,7 @@ template:
 	cp -a $(TEMPLATE_DIR) $(DESTDIR)
 ifdef CONFIG_IBM_PS2_DIAGNOSTIC
 	# Kernel HMA mode prevented boot on original IBM PS/2 hardware.
-	sed -i 's/^hma=kernel$/#hma=kernel/' $(DESTDIR)/bootopts
+	sed -i 's/^hma=kernel$$/#hma=kernel/' $(DESTDIR)/bootopts
 	# Experimental IBM PS/2: mount root using the direct FDC driver, not BIOS INT 13h.
 	# Keep the kernel and Nano-X configuration identical to the known-good floppy.
 	# The bootloader still uses BIOS to load /linux before the kernel starts.
