@@ -1,0 +1,61 @@
+name: Preserve verified IBM PS/2 floppy release
+
+# One-time release archival on an explicit preservation request.
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/manual-build-requests/preserve-working-ps2-v1.txt'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release_verified_image:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact verified build (do not rebuild)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          gh run download 39871796387 -R ARMoir/elks \
+            -n elks-ibm-ps2-fd1440-fat -D release
+          test "$(stat -c '%s' release/fd1440.img)" -eq 1474560
+          echo "a618298c465c667b044ff7d3a92f83e245cb10334ce4bdf85ba973fff8f6134d  release/fd1440.img" | sha256sum -c -
+          mv release/fd1440.img release/ELKS_0.9.2_IBM_PS2_NanoX_Mouse_WORKING.img
+
+      - name: Create permanent verified hardware release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<'EOF'
+          # First verified IBM PS/2 mouse + Nano-X floppy
+
+          Tested on physical vintage IBM PS/2 hardware with 2 MB RAM
+          on 2026-10-22. Boots ELKS 0.9.2 FAT12 from a 1.44 MB floppy,
+          runs Nano-X desktop with a working physical PS/2 mouse,
+          and launches applications. Includes elkfetch.
+
+          **Known limitation:** An intermittent KSTACK(7) kernel stack
+          overflow appeared after the boot-time date command. The system
+          still reached login and ran the graphical desktop. This exact
+          build is preserved unchanged as a regression baseline.
+
+          Source revision: 0f0057388d928568a21fc618c6710f97572a48bd
+          Frozen branch: ibm-ps2-nanox-working-20261022
+          Original Actions run: 39871796387
+
+          Original image SHA-256:
+          a618298c465c667b044ff7d3a92f83e245cb10334ce4bdf85ba973fff8f6134d
+          EOF
+          gh release create ibm-ps2-working-20261022 \
+            release/ELKS_0.9.2_IBM_PS2_NanoX_Mouse_WORKING.img \
+            --repo ARMoir/elks \
+            --target 0f0057388d928568a21fc618c6710f97572a48bd \
+            --title "ELKS IBM PS/2: first verified Nano-X and mouse build" \
+            --notes-file release-notes.md --latest=false
