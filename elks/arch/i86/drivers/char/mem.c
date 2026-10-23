@@ -154,6 +154,7 @@ static int kmem_ioctl(struct inode *inode, struct file *file, int cmd, char *arg
         mm_get_usage(&mu);
         memcpy_tofs(arg, &mu, sizeof(struct mem_usage));
         return 0;
+#ifdef CONFIG_IBM_PS2_DIAGNOSTIC
     case MEM_GETSYSINFO:
         {
             /* Arch CPU class comes from the kernel's boot-time CPU probe.
@@ -170,6 +171,7 @@ static int kmem_ioctl(struct inode *inode, struct file *file, int cmd, char *arg
             memcpy_tofs(arg, &info, sizeof(info));
             return 0;
         }
+#endif
     case MEM_GETHEAP:
         retword = (unsigned)&_heap_all;
         break;
