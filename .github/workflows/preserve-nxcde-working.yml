@@ -1,0 +1,67 @@
+name: Preserve hardware-verified ELKS CDE-style front panel
+
+# Exact hardware-tested image from CI; no rebuild, no changes to prior releases.
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/manual-build-requests/preserve-ps2-nxcde-working.txt'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release_verified_cde:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact hardware-tested CDE image; verify content
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          gh run download 40007901537 -R ARMoir/elks \
+            -n elks-ibm-ps2-cde-panel-fd1440-fat -D release
+          test "$(stat -c '%s' release/fd1440.img)" -eq 1474560
+          echo "63293c83b53db1cd101801688d7dbe76e2418d60f8b9943a98c8a31af7a652db  release/fd1440.img" | sha256sum -c -
+          mv release/fd1440.img release/ELKS_0.9.2_PS2_CDE_FrontPanel_XEyes_WORKING.img
+
+      - name: Publish archived hardware-tested CDE front panel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<'EOF'
+          # ELKS 0.9.2 — CDE-inspired Nano-X front panel (hardware verified)
+
+          This exact 1,474,560-byte FAT12 floppy was shown running on the
+          user's vintage Packard Bell CRT hardware. The images show the
+          turquoise desktop, bottom AIX-style Front Panel, working nxterm,
+          XEyes and elkfetch. **No rebuild** of the tested floppy was made.
+
+          - Small 16-color beveled CDE-inspired /bin/nxstart launcher.
+          - Centered bottom Front Panel, Apps drawer, quick-launchers.
+          - Clock and four backdrop-color presets (not virtual workspaces).
+          - Installed-only GUI applications, PS/2 mouse and corrected XEyes.
+          - Proven ELKS 830-byte kernel stacks and BIOS floppy root.
+          - Preserve /etc/rc.sys boot socket cleanup: rm -f /tmp/nxsock.
+          - Automatic root-login elkfetch.
+
+          Frozen source commit: c3b17d95b06b4984f84fb5e2036d01b7a3ff9af0
+          Frozen source branch: ibm-ps2-nxcde-hardware-verified-20261023
+          Original Actions run: 40007901537
+          Source Actions artifact: elks-ibm-ps2-cde-panel-fd1440-fat
+          Image SHA-256: 63293c83b53db1cd101801688d7dbe76e2418d60f8b9943a98c8a31af7a652db
+          Image size: 1,474,560 bytes
+
+          Prior hardware-verified releases remain available for rollback.
+          This release verifies function on the tested machine, not freedom
+          from every possible bug or antivirus detection.
+          EOF
+          gh release create ibm-ps2-cde-front-panel-working-20261023 \
+            release/ELKS_0.9.2_PS2_CDE_FrontPanel_XEyes_WORKING.img \
+            --repo ARMoir/elks --target c3b17d95b06b4984f84fb5e2036d01b7a3ff9af0 \
+            --title "ELKS: verified IBM CDE-style Nano-X Front Panel + XEyes" \
+            --notes-file release-notes.md
