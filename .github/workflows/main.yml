@@ -75,7 +75,8 @@ jobs:
           test -f image/fd1440.img
           test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
           # FAT12 root profile must actually survive packaging in the image.
-          mtype -i image/fd1440.img ::/root/.profile | tr -d '\r' | grep -q '^/bin/elkfetch$'
+          mcopy -i image/fd1440.img ::/root/.profile "$RUNNER_TEMP/elkfetch-profile"
+          tr -d '\r' < "$RUNNER_TEMP/elkfetch-profile" | grep -q '^/bin/elkfetch$'
 
       - name: Upload the one boot floppy image
         uses: actions/upload-artifact@v4
