@@ -13,12 +13,19 @@
 #define MEM_GETJIFFADDR 11
 #define MEM_GETSEGALL   12
 #define MEM_GETDMSG     13
+#define MEM_GETSYSINFO  14  /* boot-detected CPU class and active task count */
 
 struct mem_usage {              /* all in Kbytes */
     unsigned int main_free;
     unsigned int main_used;
     unsigned int xms_free;
     unsigned int xms_used;
+};
+
+/* Small kernel-provided snapshot; no task table needs to be copied to userland. */
+struct mem_system_info {
+    unsigned int cpu_class;  /* CPU_... value from <linuxmt/kernel.h> */
+    unsigned int processes;  /* count of allocated task slots */
 };
 
 void mm_get_usage(struct mem_usage *mu);
