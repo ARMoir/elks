@@ -72,24 +72,7 @@ jobs:
           grep -q 'Processes:' elkscmd/sys_utils/elkfetch.c
           grep -q 'Kernel build:' elkscmd/sys_utils/elkfetch.c
           grep -q 'Root FS:' elkscmd/sys_utils/elkfetch.c
-          grep -q '^/bin/elkfetch
-          ! grep -q '^/bin/elkfetch$' target/etc/rc.sys
-          ! grep -q '^rm -f /tmp/nxsock$' target/etc/rc.sys
-          grep -q '^export MOUSE_TYPE=ps2$' target/etc/profile
-          grep -q '^#hma=kernel$' target/bootopts
-          test -f image/fd1440.img
-          test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
-          # FAT12 root profile must actually survive packaging in the image.
-          mcopy -i image/fd1440.img ::/root/.profile "$RUNNER_TEMP/elkfetch-profile"
-          tr -d '\r' < "$RUNNER_TEMP/elkfetch-profile" | grep -q '^/bin/elkfetch$'
-
-      - name: Upload the one boot floppy image
-        uses: actions/upload-artifact@v4
-        with:
-          name: elks-ibm-ps2-fd1440-fat
-          path: image/fd1440.img
-          if-no-files-found: error
- target/root/.profile
+          grep -q '^/bin/elkfetch$' target/root/.profile
           ! grep -q '^/bin/elkfetch$' target/etc/rc.sys
           ! grep -q '^rm -f /tmp/nxsock$' target/etc/rc.sys
           grep -q '^export MOUSE_TYPE=ps2$' target/etc/profile
