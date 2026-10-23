@@ -4,7 +4,10 @@ This branch is for testing ELKS 0.9.2-era behavior on a real 2 MB IBM PS/2
 with a 1.44 MB floppy drive and native PS/2 mouse.
 
 The baseline system successfully booted **only after** commenting out
-`hma=kernel` in `/bootopts`. Nano-X launched with
+`hma=kernel` in `/bootopts`. A 2026-10-22 hardware test of the diagnostic
+FAT floppy confirmed ELKS 0.9.2 boots and `elkfetch` works interactively,
+but sysinit printed `KSTACK(7) KERNEL STACK OVERFLOW / Killed` after
+displaying the date. Nano-X previously launched with
 `MOUSE_PORT=none`, but two verified-working native PS/2 mice froze the
 mouse tester or left a stationary graphical mouse cursor. BIOS floppy
 read errors also appeared on multiple disks.
@@ -18,13 +21,16 @@ read errors also appeared on multiple disks.
   multi-sector reads. This sacrifices speed to isolate the issue.
 - **Welcome screen:** a compact native C `/bin/elkfetch` program prints an
   ELKS ASCII logo, actual `uname()` values, available RAM/XMS statistics
-  from `/dev/kmem`, shell, and configured mouse mode. Its invocation is
-  appended to `/etc/rc.sys` only for the diagnostic build, after the
-  ordinary date display. It does **not** touch mouse hardware.
-- **Startup:** diagnostic images add `export MOUSE_TYPE=ps2` to `/etc/profile`
-  and `rm -f /tmp/nxsock` to `/etc/rc.sys`. The socket is only
-  removed at boot; a running Nano-X session is never disturbed by
-  repeated app launches.
+  from `/dev/kmem`, shell, and configured mouse mode. Real-hardware testing
+  found the program works after login, but boot showed a `KSTACK(7)`
+  overflow between the date command and the login prompt. Until the
+  offending early boot command is isolated, the diagnostic image launches
+  `elkfetch` from `/root/.profile` after successful root login, not
+  from `/etc/rc.sys`. It does **not** touch mouse hardware.
+- **Startup:** diagnostic images add `export MOUSE_TYPE=ps2` to
+  `/etc/profile`. The old `rm -f /tmp/nxsock` early boot cleanup
+  has been disabled temporarily during KSTACK debugging. If Nano-X leaves
+  a stale socket, remove it manually before restarting the desktop.
 - **Mouse:** read the existing 8042 command byte and preserve the BIOS's
   settings (including keyboard and translation state). Change only
   the bits needed to enable the auxiliary mouse port and IRQ 12.
@@ -87,7 +93,8 @@ make -C image
    press Ctrl+C and try:
 
    ```sh
-   # /tmp/nxsock was cleaned at boot; no repeated cleanup required.
+   # Only if the previous Nano-X session left a stale socket:
+   rm -f /tmp/nxsock
    nxstart
    ```
 
