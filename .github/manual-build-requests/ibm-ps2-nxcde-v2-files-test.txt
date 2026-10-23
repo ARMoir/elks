@@ -1,0 +1,7 @@
+IBM PS/2 Nano-X CDE V2 experimental build: read-only graphical Files utility
+Branch ibm-ps2-nxcde-v2-files-test, forked from the exact hardware verified CDE release
+16-bit /bin/nxfiles lists directories, navigates folders, previews text files with paging.
+Adds Files launch icon to working Front Panel; launcher filters installed applications.
+Retains original Nano-X, moving-window XEyes, 830-byte stack, PS/2 mouse, BIOS floppy.
+Requires original /etc/rc.sys rm -f /tmp/nxsock and auto elkfetch unchanged.
+Do not modify verified CDE release or frozen source.
