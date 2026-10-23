@@ -1,0 +1,8 @@
+Archive hardware-confirmed working IBM PS/2 XEyes / Nano-X / installed-only menu image.
+Source GitHub Actions run: 39997340890
+Exact artifact: elks-ibm-ps2-nxeyes-dynamic-menu-fd1440-fat
+Exact image SHA-256: 9d86733b541bb751f3355d7985e18ab4dd2e700964ad20caf36ada12f924600e
+Exact source commit: b9aac165d2dab416044bcac5f1d391532444b8a2
+Frozen branch: ibm-ps2-nanox-eyes-dynamic-menu-working-20261023
+Tag: ibm-ps2-nxeyes-dynamic-menu-working-20261023
+Do NOT rebuild or modify existing stable releases.
