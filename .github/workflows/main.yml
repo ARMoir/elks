@@ -67,10 +67,11 @@ jobs:
           make -C image
 
           test -s target/bin/elkfetch
-          grep -q '^/bin/elkfetch$' target/etc/rc.sys
+          grep -q '^/bin/elkfetch$' target/root/.profile
+          ! grep -q '^/bin/elkfetch$' target/etc/rc.sys
+          ! grep -q '^rm -f /tmp/nxsock$' target/etc/rc.sys
           grep -q '^export MOUSE_TYPE=ps2$' target/etc/profile
           grep -q '^#hma=kernel$' target/bootopts
-          grep -q '^rm -f /tmp/nxsock$' target/etc/rc.sys
           test -f image/fd1440.img
           test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
 
