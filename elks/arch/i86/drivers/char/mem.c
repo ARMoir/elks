@@ -154,6 +154,22 @@ static int kmem_ioctl(struct inode *inode, struct file *file, int cmd, char *arg
         mm_get_usage(&mu);
         memcpy_tofs(arg, &mu, sizeof(struct mem_usage));
         return 0;
+    case MEM_GETSYSINFO:
+        {
+            /* Arch CPU class comes from the kernel's boot-time CPU probe.
+             * Count live tasks in kernel space to avoid a large /dev/kmem
+             * task-table copy (and a large elkfetch stack on small PCs). */
+            struct mem_system_info info;
+            unsigned int i;
+            info.cpu_class = arch_cpu;
+            info.processes = 0;
+            for (i = 0; i < max_tasks; ++i) {
+                if (task[i].state != TASK_UNUSED)
+                    ++info.processes;
+            }
+            memcpy_tofs(arg, &info, sizeof(info));
+            return 0;
+        }
     case MEM_GETHEAP:
         retword = (unsigned)&_heap_all;
         break;
