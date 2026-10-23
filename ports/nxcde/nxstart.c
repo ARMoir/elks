@@ -213,7 +213,9 @@ static void draw_panel(void)
             int glyph = !strcmp(apps[idx].label, "Terminal") ? 1 :
                         !strcmp(apps[idx].label, "Eyes") ? 2 :
                         !strcmp(apps[idx].label, "Calculator") ? 3 : 4;
-            draw_button(x, 55, apps[idx].label, glyph, 0);
+            draw_button(x, 55,
+                        !strcmp(apps[idx].label, "Calculator") ? "Calc" : apps[idx].label,
+                        glyph, 0);
         }
     }
 
