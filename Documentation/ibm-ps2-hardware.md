@@ -21,13 +21,18 @@ read errors also appeared on multiple disks.
   multi-sector reads. This sacrifices speed to isolate the issue.
 - **Welcome screen:** a compact native C `/bin/elkfetch` program prints an
   ELKS ASCII logo, a `user@host` heading with a dashed divider, actual
-  `uname()` values, live uptime and RAM/XMS statistics from `/dev/kmem`,
-  shell, configured mouse mode, login TTY, and terminal setting. CPU identity
-  and video hardware are **not** detected by elkfetch; `uname` reports the
-  kernel's generic build target. Real-hardware testing
-  found the program works after login, but boot showed a `KSTACK(7)`
-  overflow between the date command and the login prompt. Until the
-  offending early boot command is isolated, the diagnostic image launches
+  `uname()` values (including kernel build string), live uptime and
+  RAM/XMS statistics from `/dev/kmem`, the boot-detected CPU class,
+  live task count, and root filesystem type. It also reports shell, the
+  configured mouse mode, login TTY, and terminal setting. The CPU class
+  comes from the boot probe, **not** the generic `uname().machine` target.
+  The `MEM_GETSYSINFO` ioctl returns CPU and process counts in four bytes,
+  avoiding userland reads of large kernel task structures. The root FS
+  comes from `ustatfs(..., UF_NOFREESPACE)` without scanning free FAT
+  clusters. CPU/video brand/model, video resolution, and mouse operational
+  status are **not** probed by elkfetch. Real-hardware testing
+  confirmed auto elkfetch after login; a `KSTACK(6)` startup warning
+  remains after the date command. The diagnostic image launches
   `elkfetch` from `/root/.profile` after successful root login, not
   from `/etc/rc.sys`. It does **not** touch mouse hardware.
 - **Startup:** diagnostic images add `export MOUSE_TYPE=ps2` to
@@ -42,7 +47,7 @@ read errors also appeared on multiple disks.
 - **Scope:** changes are behind one opt-in config option; upstream ELKS
   defaults and standard IBM images remain unchanged.
 
-These are **untested experimental changes**, not a confirmed mouse fix.
+The PS/2 mouse and Nano-X have been **confirmed working on physical IBM PS/2 hardware** using the 2026-10-22 archived release. The expanded elkfetch fields and MEM_GETSYSINFO interface are new and still require hardware testing. The startup KSTACK warning is not yet resolved.
 
 ## Manual IBM test floppy build (no automatic CI on commits)
 
