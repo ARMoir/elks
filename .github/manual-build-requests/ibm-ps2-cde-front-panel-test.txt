@@ -6,3 +6,5 @@ Installed-only applications drawer plus quick launch buttons, clock, four backdr
 Not full X11/CDE/Motif; no real virtual workspaces in v1; controls 1-4 choose backdrop palette.
 Preserve automatic boot rm -f /tmp/nxsock, elkfetch, nano-X server, PS/2 mouse and kernel.
 Create separate FAT12 1.44MB floppy artifact. Existing stable release left untouched.
+
+Polish pass source commit 0d39b57c429598334e7b13a04d775adf3c99f5bc: shorten Terminal/Calculator panel captions; include README documentation.
