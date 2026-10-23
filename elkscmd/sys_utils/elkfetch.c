@@ -1,21 +1,25 @@
 /*
- * elkfetch - tiny system summary for ELKS
+ * elkfetch - tiny Neofetch-style system summary for ELKS.
  *
- * Displays information available through existing ELKS interfaces.
- * No BIOS mouse probing or direct I/O-port access is performed.
- *
- * Initial implementation for original IBM PS/2 diagnostic boots.
+ * Data comes from uname(), libc user/TTY settings, and kernel memory
+ * statistics. CPU and video hardware are not claimed to be probed.
+ * No mouse device is opened, and no BIOS hardware calls are made.
  */
 #define __LIBC__
 #include <linuxmt/types.h>
 #include <linuxmt/mem.h>
+#include <arch/segment.h>
+#include <arch/param.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/utsname.h>
+
+#define INFO_PREFIX "                               "
 
 static const char *mouse_mode(void)
 {
@@ -47,38 +51,107 @@ static int read_memory(struct mem_usage *mu)
     return ok;
 }
 
+/* Uses the same kernel uptime interface as ELKS's existing 'ps -u'.
+ * Unlike wall-clock time, jiffies counts time since boot. */
+static int read_uptime(unsigned long *seconds)
+{
+    int fd = open("/dev/kmem", O_RDONLY | O_ALT);
+    unsigned int ds, offset;
+    jiff_t ticks;
+
+    if (fd < 0)
+        return -1;
+    if (ioctl(fd, MEM_GETDS, &ds) < 0 ||
+        ioctl(fd, MEM_GETUPTIME, &offset) < 0 ||
+        lseek(fd, _MK_LP(ds, offset), SEEK_SET) == -1 ||
+        read(fd, &ticks, sizeof(ticks)) != sizeof(ticks)) {
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
+    *seconds = ticks / HZ;
+    return 0;
+}
+
 int main(void)
 {
     struct utsname os;
     struct mem_usage mu;
+    struct passwd *pw;
+    const char *username;
+    const char *sysname;
+    const char *release;
+    const char *hostname;
+    const char *machine;
+    const char *shell;
+    const char *tty;
+    const char *term;
+    unsigned long seconds;
+    unsigned int days, hours, minutes, i, header_len;
     int have_os = (uname(&os) == 0);
     int have_mem = (read_memory(&mu) == 0);
+    int have_uptime = (read_uptime(&seconds) == 0);
 
-    const char *sysname = have_os ? os.sysname : "ELKS";
-    const char *release = have_os ? os.release : "unknown";
-    const char *hostname = have_os ? os.nodename : "unknown";
-    const char *machine = have_os ? os.machine : "unknown";
-    const char *shell = getenv("SHELL");
+    pw = getpwuid(getuid());
+    username = pw && pw->pw_name ? pw->pw_name : getenv("USER");
+    if (!username || !*username)
+        username = "user";
+
+    sysname = have_os ? os.sysname : "ELKS";
+    release = have_os ? os.release : "unknown";
+    hostname = have_os ? os.nodename : "unknown";
+    machine = have_os ? os.machine : "unknown";
+    shell = getenv("SHELL");
+    tty = ttyname(0);
+    term = getenv("TERM");
 
     if (!shell || !*shell)
         shell = "/bin/sh";
+    if (!tty || !*tty)
+        tty = "unknown";
+    if (!term || !*term)
+        term = "unknown";
+
+    header_len = strlen(username) + strlen(hostname) + 1;
+    if (header_len > 39)
+        header_len = 39;
 
     puts("");
-    printf("    _____ _     _  __ ____     OS: %s %s\n", sysname, release);
-    printf("   | ____| |   | |/ // ___|    Host: %s\n", hostname);
-    printf("   |  _| | |   | ' / \\___ \\    Target: %s\n", machine);
+    printf("    _____ _     _  __ ____     %s@%s\n", username, hostname);
+    printf("   | ____| |   | |/ // ___|    ");
+    for (i = 0; i < header_len; i++)
+        putchar('-');
+    putchar('\n');
+    printf("   |  _| | |   | ' / \\___ \\    OS: %s %s\n", sysname, release);
+    printf("   | |___| |___| . \\  ___) |   Target: %s\n", machine);
+
+    if (have_uptime) {
+        days = seconds / 86400UL;
+        seconds %= 86400UL;
+        hours = seconds / 3600UL;
+        minutes = (seconds % 3600UL) / 60UL;
+        printf("   |_____|_____|_|\\_\\|____/    Uptime: %ud %uh %um\n",
+            days, hours, minutes);
+    } else {
+        puts("   |_____|_____|_|\\_\\|____/    Uptime: unavailable");
+    }
+
     if (have_mem)
-        printf("   | |___| |___| . \\  ___) |   RAM: %u/%u KB used\n",
+        printf(INFO_PREFIX "RAM: %u/%u KB used\n",
             mu.main_used, mu.main_used + mu.main_free);
     else
-        puts("   | |___| |___| . \\  ___) |   RAM: unavailable");
+        puts(INFO_PREFIX "RAM: unavailable");
     if (have_mem)
-        printf("   |_____|_____|_|\\_\\|____/    XMS: %u/%u KB used\n",
+        printf("       Linux for 8086/286      XMS: %u/%u KB used\n",
             mu.xms_used, mu.xms_used + mu.xms_free);
     else
-        puts("   |_____|_____|_|\\_\\|____/    XMS: unavailable");
-    printf("                               Shell: %s\n", shell);
-    printf("       Linux for 8086/286      Mouse: %s\n", mouse_mode());
+        puts("       Linux for 8086/286      XMS: unavailable");
+
+    printf(INFO_PREFIX "Shell: %s\n", shell);
+    printf(INFO_PREFIX "Mouse: %s\n", mouse_mode());
+    printf(INFO_PREFIX "TTY: %s\n", tty);
+    printf(INFO_PREFIX "Terminal: %s\n", term);
     puts("");
     return 0;
 }
