@@ -74,6 +74,8 @@ jobs:
           grep -q '^#hma=kernel$' target/bootopts
           test -f image/fd1440.img
           test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
+          # FAT12 root profile must actually survive packaging in the image.
+          mtype -i image/fd1440.img ::/root/.profile | tr -d '\r' | grep -q '^/bin/elkfetch$'
 
       - name: Upload the one boot floppy image
         uses: actions/upload-artifact@v4
