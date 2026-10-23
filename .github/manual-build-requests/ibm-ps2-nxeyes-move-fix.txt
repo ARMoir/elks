@@ -1,0 +1,6 @@
+IBM PS/2: Nano-X eyes moving-window coordinate correction
+Checkout branch ibm-ps2-nxeyes-move-fix
+Source fix a2fe585a0b15f35c4e7796a62020a63002079df0
+Compute absolute eyes window origin by accumulating GrGetWindowInfo.x/y up ancestor hierarchy to GR_ROOT_WINDOW_ID
+Preserve 830-byte stack, BIOS floppy, Nano-X desktop/mouse, boot nxsock cleanup, elkfetch
+Build 1.44 MB FAT12 experimental image, not verified stable release
