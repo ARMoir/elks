@@ -1,6 +1,6 @@
 # Manual IBM PS/2 ELKS floppy build request
 # Build exactly one FAT12 1.44 MB floppy, only for explicit request.
-request: ibm-ps2-2026-10-22-2
+request: ibm-ps2-2026-10-22-3
 source: ibm-ps2-hardware
 source_commit: a752d3774f12f1aad82ac8d748d5a00a3b0877c0
-purpose: Test login-triggered elkfetch and removal of early-boot socket cleanup after KSTACK(7) on physical hardware.
+purpose: Rerun with FAT embedded-profile verification corrected. Test login-triggered elkfetch and removal of early-boot socket cleanup after KSTACK(7) on physical hardware.
