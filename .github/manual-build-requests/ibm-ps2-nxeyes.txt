@@ -1,0 +1,6 @@
+PS/2 Nano-X eyes native test build
+Experiment branch: ibm-ps2-nxeyes-test
+Base: working 830-byte BIOS floppy with Nano-X and PS/2 mouse
+Add lightweight integer-only /bin/nxeyes and Eyes entry to nxstart launcher
+Do not modify archived working source or release
+Build one FAT12 1.44 MB experimental image and verify packaged nxeyes
