@@ -81,21 +81,51 @@ static void draw_frame(void)
     drawn = 1;
 }
 
+/*
+ * GrGetWindowInfo().x/y are PARENT-relative, not screen coordinates.
+ * NanoWM reparents app windows into a movable frame: after dragging the
+ * frame, the client's local x/y does not change. Sum the positions of
+ * our window AND each ancestor all the way back to the desktop root.
+ * Fetch every cycle to follow moves even if no expose event occurs.
+ */
+static int window_screen_origin(GR_WINDOW_ID id, int *ox, int *oy)
+{
+    GR_WINDOW_INFO info;
+    int x = 0;
+    int y = 0;
+    int depth = 0;
+
+    while (id && id != GR_ROOT_WINDOW_ID && depth++ < 8) {
+        GrGetWindowInfo(id, &info);
+        if (info.wid != id)
+            return -1;
+        x += info.x;
+        y += info.y;
+        id = info.parent;
+    }
+    if (id != GR_ROOT_WINDOW_ID)
+        return -1;
+    *ox = x;
+    *oy = y;
+    return 0;
+}
+
 static void update_eyes(void)
 {
     static const int centers[2] = { LEFT_X, RIGHT_X };
     GR_SCREEN_INFO screen;
-    GR_WINDOW_INFO info;
+    int wx, wy;
     int i, px, py;
 
     if (!drawn)
         return;
+    if (window_screen_origin(win, &wx, &wy) < 0)
+        return;
     GrGetScreenInfo(&screen);
-    GrGetWindowInfo(win, &info);
 
     for (i = 0; i < 2; ++i) {
         pupil_position(centers[i], EYE_Y,
-                       screen.xpos - info.x, screen.ypos - info.y,
+                       screen.xpos - wx, screen.ypos - wy,
                        &px, &py);
         if (px == old_px[i] && py == old_py[i])
             continue;
@@ -123,6 +153,7 @@ int main(void)
                         EYES_W, EYES_H, GR_COLOR_WHITE);
     gc = GrNewGC();
     GrSelectEvents(win, GR_EVENT_MASK_EXPOSURE |
+                        GR_EVENT_MASK_UPDATE |
                         GR_EVENT_MASK_CLOSE_REQ);
     GrMapWindow(win);
 
