@@ -82,7 +82,7 @@ jobs:
           mcopy -i image/fd1440.img ::/bootopts "$RUNNER_TEMP/ps2-kstack-bootopts"
           mcopy -i image/fd1440.img ::/root/.profile "$RUNNER_TEMP/ps2-kstack-profile"
           mcopy -i image/fd1440.img ::/etc/rc.sys "$RUNNER_TEMP/ps2-kstack-rcsys"
-          tr -d '\\r' < "$RUNNER_TEMP/ps2-kstack-rcsys" | grep -qx 'rm -f /tmp/nxsock'
+          tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-rcsys" | grep -qx 'rm -f /tmp/nxsock'
           ! tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-bootopts" | grep -qx 'root=df0'
           ! tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-bootopts" | grep -qx 'disable=fd0'
           tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-profile" | grep -qx '/bin/elkfetch'
