@@ -133,7 +133,6 @@ int main(void)
     struct mem_usage mu;
     struct mem_system_info system_info;
     struct passwd *pw;
-    char build_version[35];
     const char *username;
     const char *sysname;
     const char *release;
@@ -169,11 +168,6 @@ int main(void)
     if (!term || !*term)
         term = "unknown";
 
-    /* Keep the kernel build line inside a narrow 80-column console. */
-    strncpy(build_version, have_os ? os.version : "unavailable",
-        sizeof(build_version) - 1);
-    build_version[sizeof(build_version) - 1] = '\0';
-
     header_len = strlen(username) + strlen(hostname) + 1;
     if (header_len > 39)
         header_len = 39;
@@ -198,7 +192,6 @@ int main(void)
         puts("   |_____|_____|_|\\_\\|____/    Uptime: unavailable");
     }
 
-    printf(INFO_PREFIX "Kernel build: %s\n", build_version);
     if (have_system)
         printf(INFO_PREFIX "CPU (probe): %s\n", cpu_name(system_info.cpu_class));
     else
