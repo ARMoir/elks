@@ -20,8 +20,11 @@ read errors also appeared on multiple disks.
   floppy drives for a controlled comparison with previously failing
   multi-sector reads. This sacrifices speed to isolate the issue.
 - **Welcome screen:** a compact native C `/bin/elkfetch` program prints an
-  ELKS ASCII logo, actual `uname()` values, available RAM/XMS statistics
-  from `/dev/kmem`, shell, and configured mouse mode. Real-hardware testing
+  ELKS ASCII logo, a `user@host` heading with a dashed divider, actual
+  `uname()` values, live uptime and RAM/XMS statistics from `/dev/kmem`,
+  shell, configured mouse mode, login TTY, and terminal setting. CPU identity
+  and video hardware are **not** detected by elkfetch; `uname` reports the
+  kernel's generic build target. Real-hardware testing
   found the program works after login, but boot showed a `KSTACK(7)`
   overflow between the date command and the login prompt. Until the
   offending early boot command is isolated, the diagnostic image launches
