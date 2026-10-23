@@ -1,0 +1,109 @@
+name: IBM PS/2 Nano-X installed-app menu (manual)
+
+# GUI demo experiment; verified 830-byte BIOS floppy release unchanged.
+# Source branch: ibm-ps2-nxeyes-menu-filter
+on:
+  workflow_dispatch:
+  # Creating/updating the single request file can also start one build.
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/manual-build-requests/ibm-ps2-nxeyes-menu-filter.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  installed_apps_floppy:
+    name: Build PS/2 FAT floppy with installed-only X apps menu
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out installed-app menu test branch
+        uses: actions/checkout@v4
+        with:
+          ref: ibm-ps2-nxeyes-menu-filter
+
+      - name: Install ELKS build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing texinfo libncurses5-dev libelf-dev ncompress nasm
+
+      - name: Cache 16-bit cross-compiler
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: cross
+          key: cross-${{ hashFiles('tools/*') }}-${{ runner.os }}
+
+      - name: Build 16-bit cross-compiler if needed
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: tools/build.sh
+
+      - name: Build and verify installed-only Nano-X launcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          . ./env.sh
+          make -C elks/arch/i86/drivers/char/KeyMaps config.in
+          cp ibmpc-1440-ps2diag.config .config
+          make include/autoconf.h
+
+          grep -q '^#define CONFIG_IBM_PS2_DIAGNOSTIC 1' include/autoconf.h
+          grep -q '^#define CONFIG_BLK_DEV_BFD 1' include/autoconf.h
+          grep -q '^#define CONFIG_BLK_DEV_FD 1' include/autoconf.h
+          grep -q '^#define CONFIG_ASYNCIO 1' include/autoconf.h
+          grep -q '^CONFIG_IMG_FD1440=y' .config
+          grep -q '^CONFIG_IMG_FAT=y' .config
+          grep -q '^#define KSTACK_BYTES    830' elks/include/linuxmt/limits.h
+
+          make -C libc all
+          make -C libc DESTDIR="$CROSSDIR" install
+          make kernel bootblocks
+          make -C elkscmd all
+          ./buildext.sh microwindows
+          bash ports/nxeyes/build.sh
+          make -C image
+
+          test -s target/bin/elkfetch
+          test -s target/bin/nxeyes
+          test -s target/bin/nxstart
+          grep -q 'PATH "nxeyes"' extapps/microwindows/src/demos/nanox/nxstart.c
+          grep -q 'filter_installed_apps()' extapps/microwindows/src/demos/nanox/nxstart.c
+          grep -q 'access(read_app->app_path, F_OK)' extapps/microwindows/src/demos/nanox/nxstart.c
+          grep -q 'strcmp(read_app->app_path, "quit")' extapps/microwindows/src/demos/nanox/nxstart.c
+          grep -q 'window_screen_origin' ports/nxeyes/nxeyes.c
+          grep -q 'id = info.parent;' ports/nxeyes/nxeyes.c
+          grep -q 'screen.xpos - wx, screen.ypos - wy' ports/nxeyes/nxeyes.c
+          ! grep -q 'Kernel build:' elkscmd/sys_utils/elkfetch.c
+          grep -qx '/bin/elkfetch' target/root/.profile
+          grep -qx 'rm -f /tmp/nxsock' target/etc/rc.sys
+          grep -qx 'export MOUSE_TYPE=ps2' target/etc/profile
+          grep -qx '#hma=kernel' target/bootopts
+          ! grep -qx 'root=df0' target/bootopts
+          ! grep -qx 'disable=fd0' target/bootopts
+          ! grep -q '^root=fd0$' target/bootopts
+          test "$(wc -c < target/bootopts)" -le 1023
+          test -f image/fd1440.img
+          test "$(stat -c '%s' image/fd1440.img)" -eq 1474560
+
+          # Confirm the options and login profile actually made it into FAT12.
+          mcopy -i image/fd1440.img ::/bootopts "$RUNNER_TEMP/ps2-kstack-bootopts"
+          mcopy -i image/fd1440.img ::/root/.profile "$RUNNER_TEMP/ps2-kstack-profile"
+          mcopy -i image/fd1440.img ::/etc/rc.sys "$RUNNER_TEMP/ps2-kstack-rcsys"
+          tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-rcsys" | grep -qx 'rm -f /tmp/nxsock'
+          ! tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-bootopts" | grep -qx 'root=df0'
+          ! tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-bootopts" | grep -qx 'disable=fd0'
+          tr -d '\r' < "$RUNNER_TEMP/ps2-kstack-profile" | grep -qx '/bin/elkfetch'
+          mcopy -i image/fd1440.img ::/bin/nxeyes "$RUNNER_TEMP/nxeyes-image"
+          test -s "$RUNNER_TEMP/nxeyes-image"
+          mdir -i image/fd1440.img ::/bin
+          sha256sum image/fd1440.img
+
+      - name: Upload experimental PS/2 floppy image
+        uses: actions/upload-artifact@v4
+        with:
+          name: elks-ibm-ps2-nxeyes-dynamic-menu-fd1440-fat
+          path: image/fd1440.img
+          if-no-files-found: error
