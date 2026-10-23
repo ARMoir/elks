@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "nano-X.h"
+#include "nxcolors.h"
 
 #define EYES_W      94
 #define EYES_H      54
