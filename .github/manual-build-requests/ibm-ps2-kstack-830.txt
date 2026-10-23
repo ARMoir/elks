@@ -1,0 +1,8 @@
+Build request: IBM PS/2 830-byte async I/O kernel stack experiment
+Source branch: ibm-ps2-kstack-830-test
+Source commit: 50bfb1e8541b1e4e89873c489ece081accb93271
+Known good: ibm-ps2-hardware (unchanged)
+Use BIOS floppy INT 13h as before; do not use direct FDC as root.
+Only kernel stack changed: 700 to 830 bytes.
+Keep Nano-X, native PS/2 mouse, and root login elkfetch.
+Produce one 1.44 MB FAT12 floppy image.
