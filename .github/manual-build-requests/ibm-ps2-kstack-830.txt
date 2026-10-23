@@ -1,8 +1,8 @@
-Build request: IBM PS/2 BIOS floppy with 830-byte kernel stack and compact elkfetch
+Build request: IBM PS/2 830-byte BIOS floppy with compact elkfetch and restored Nano-X cleanup
 Source branch: ibm-ps2-kstack-830-test
-Source commit: 56ae36ee841a83a35a28a73515f49235d963d70d
-Keep BIOS floppy driver /dev/fd0; direct FDC failed real-hardware test.
-Keep 830-byte async I/O kernel stack (real PS/2 boot showed no KSTACK error).
-Remove Kernel build row from elkfetch; preserve remaining data and alignment.
-Keep Nano-X, PS/2 mouse, and root login elkfetch.
-Produce one 1.44 MB FAT12 floppy image.
+Source commit: df5461d639b6a482a4df38d9febf10ad467dfe9f
+Restore automatic rm -f /tmp/nxsock in /etc/rc.sys on boot.
+Preserve 830-byte async I/O kernel stack, BIOS floppy, mouse driver and Nano-X.
+Do not print Kernel build line in elkfetch; keep root-login autostart.
+Verify the actual FAT12 floppy /etc/rc.sys contains the cleanup command.
+Known-good ibm-ps2-hardware left unchanged.
