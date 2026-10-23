@@ -1,0 +1,8 @@
+Experimental IBM AIX CDE-inspired Nano-X Front Panel for ELKS on real 2 MB PS/2
+Source branch: ibm-ps2-cde-front-panel-test
+Base: proven 830-byte BIOS floppy with dynamic app filtering and moved-window XEyes
+Replace only /bin/nxstart launcher with native AIX CDE-style bottom Front Panel.
+Installed-only applications drawer plus quick launch buttons, clock, four backdrop choices, shell Exit.
+Not full X11/CDE/Motif; no real virtual workspaces in v1; controls 1-4 choose backdrop palette.
+Preserve automatic boot rm -f /tmp/nxsock, elkfetch, nano-X server, PS/2 mouse and kernel.
+Create separate FAT12 1.44MB floppy artifact. Existing stable release left untouched.
