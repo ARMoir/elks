@@ -66,6 +66,7 @@ jobs:
           make -C image
 
           test -s target/bin/elkfetch
+          ! grep -q 'Kernel build:' elkscmd/sys_utils/elkfetch.c
           grep -qx '/bin/elkfetch' target/root/.profile
           grep -qx 'export MOUSE_TYPE=ps2' target/etc/profile
           grep -qx '#hma=kernel' target/bootopts
