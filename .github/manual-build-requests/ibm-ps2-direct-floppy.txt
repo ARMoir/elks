@@ -1,5 +1,6 @@
-Direct floppy IBM PS/2 experimental build request
+Direct floppy IBM PS/2 experimental build request (retry after packaging fix)
 Source branch: ibm-ps2-direct-floppy-test
-Changes: root=df0 and disable=fd0 (no kstack increase)
+Source commit: e8bcebbd3c213d77094546ae7b2866c653a79484
+Changes: root=df0 and disable=fd0 (no kernel stack increase)
 Purpose: test whether direct FDC I/O eliminates KSTACK after rc.sys
 Known-good: ibm-ps2-hardware (untouched)
