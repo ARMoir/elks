@@ -77,8 +77,8 @@ int main(void)
             mu.xms_used, mu.xms_used + mu.xms_free);
     else
         puts("   |_____|_____|_|\\_\\|____/    XMS: unavailable");
-    printf("                                Shell: %s\n", shell);
-    printf("       Linux for 8086/286        Mouse: %s\n", mouse_mode());
+    printf("                               Shell: %s\n", shell);
+    printf("       Linux for 8086/286      Mouse: %s\n", mouse_mode());
     puts("");
     return 0;
 }
