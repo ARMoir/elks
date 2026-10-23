@@ -1,0 +1,7 @@
+One-time stable release archive request: ELKS IBM PS/2 Nano-X and mouse with KSTACK_BYTES=830
+Original successfully built and confirmed working on physical hardware:
+GitHub Actions run 39892197319, artifact elks-ibm-ps2-kstack-830-fd1440-fat
+Expected SHA-256 d26a700852fdbe00255eb9c0b9905bb85503064fd9b29f954e3ab94c169f1295
+Frozen source SHA df5461d639b6a482a4df38d9febf10ad467dfe9f
+Target release ibm-ps2-kstack830-working-20261023
+Preserve previously verified ibm-ps2-working-20261022 release unchanged.
