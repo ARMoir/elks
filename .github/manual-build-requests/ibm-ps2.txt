@@ -1,6 +1,6 @@
 # Manual IBM PS/2 ELKS floppy build request
 # Build exactly one FAT12 1.44 MB floppy, only for explicit request.
-request: ibm-ps2-2026-10-22-4
+request: ibm-ps2-2026-10-22-5
 source: ibm-ps2-hardware
 source_commit: 7f76b6bf0c727ee80d3cbd6d6b593b4751acb20b
 purpose: Build/test boot-detected CPU, kernel build, live processes and root filesystem in Neofetch-style elkfetch. Preserve verified Nano-X and PS/2 mouse baseline.
