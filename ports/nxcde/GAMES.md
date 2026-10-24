@@ -8,13 +8,15 @@ The Apps drawer offers:
 | Entry | Program | Interface | Controls |
 | --- | --- | --- | --- |
 | Mines | `/bin/nxmine` | Native Nano-X window | Mouse; use the on-screen controls |
-| Space Invaders | `/bin/invaders` | Titled nxterm window | j/k move left/right; Space starts/fires; q quits |
+| Space Invaders | `/bin/nxinvaders` | Native Nano-X window | Left/right or j/k move; Space starts/fires; q or Esc quits |
 | Pong | `/bin/ttypong` | Titled nxterm window | Up/down arrows or k/j; p pauses; q quits |
 
-Mines is already built by upstream Microwindows. The PS/2 image now packages
-it using a diagnostic-image-only tag. Invaders and Pong were already included
-on the 1.44 MB image; their new menu entries launch them via nxterm's direct
-`-e` program interface. No extra game data files are needed.
+Mines is already built by upstream Microwindows. The PS/2 image packages
+it using a diagnostic-image-only tag. Pong uses nxterm's direct `-e` interface.
+Invaders now uses the existing game's logic with a native Nano-X display:
+only changed character runs are drawn, once per game tick. It needs no PTY,
+ANSI interpreter or extra shell. The original `/bin/invaders` stays available
+for use at the plain console. No extra game data files are needed.
 
 Entries are still filtered against installed binaries. Quick-launch ordering
 is unchanged, and each game can be closed using its window close button.
@@ -31,3 +33,16 @@ is unchanged, and each game can be closed using its window close button.
 
 Start with one game at a time on 2 MB hardware. Build and image checks cannot
 establish animation speed, terminal rendering, or real-hardware stability.
+
+## Files and performance follow-up
+
+The file selector now creates its client with GrNewWindowEx and zero client
+border, so NanoWM can add its own frame without first unmapping/remapping a
+legacy bordered window. Its fixed layout is no longer resizable. Directory
+loading happens before mapping, and the fixed font is set explicitly.
+
+The native Invaders adapter keeps 4 KB of character grids and has no full
+pixel framebuffer. A host test runs the actual game engine for 100 ticks,
+checks rendered contents against the logical screen, verifies unchanged
+frames produce no text requests, and checks a full redraw after exposure.
+This measures rendering work, not frames per second on the real PS/2.

@@ -14,4 +14,15 @@ python3 "$TOPDIR/ports/nxcde/textapps.py" "$demos/nxterm.c"
 rm -f "$demos/nxterm.o"
 make -C "$demos" -f Makefile.elks ../../bin/nxterm
 test -s "$TOPDIR/extapps/microwindows/src/bin/nxterm"
+cp "$TOPDIR/ports/nxcde/nxinvaders.c" "$demos/nxinvaders.c"
+cp "$TOPDIR/ports/nxcde/nxinvaders.h" "$demos/nxinvaders.h"
+cp "$TOPDIR/elkscmd/tui/invaders.h" "$demos/invaders.h"
+python3 "$TOPDIR/ports/nxcde/invaders.py" "$TOPDIR/elkscmd/tui/invaders.c" "$demos/invaders-game.c"
+cat > "$demos/Makefile.nxinvaders" <<'MAKE'
+include Makefile.elks
+../../bin/nxinvaders: nxinvaders.o invaders-game.o $(NXLIB)
+	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+MAKE
+make -C "$demos" -f Makefile.nxinvaders ../../bin/nxinvaders
+test -s "$TOPDIR/extapps/microwindows/src/bin/nxinvaders"
 echo "nxcde: CDE-inspired front panel built as /bin/nxstart"

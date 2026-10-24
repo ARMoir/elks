@@ -417,18 +417,6 @@ static void scroll_page_down(void)
         scroll_offset = max_offset;
 }
 
-static void set_title(GR_WINDOW_ID win, const char *title)
-{
-    GR_WM_PROPERTIES props;
-
-    memset(&props, 0, sizeof(props));
-    props.flags = GR_WM_FLAGS_TITLE | GR_WM_FLAGS_PROPS;
-    props.title = (char *)title;
-    props.props = GR_WM_PROPS_APPWINDOW;
-
-    GrSetWMProperties(win, &props);
-}
-
 /* ---------- Main ---------- */
 
 int main(int argc, char **argv)
@@ -443,22 +431,27 @@ int main(int argc, char **argv)
     if (GrOpen() < 0) return 1;
     GrGetScreenInfo(&si);
 
-    win = GrNewWindow(GR_ROOT_WINDOW_ID,
+    /* NanoWM supplies the frame. A legacy one-pixel client border forces
+       an unmap/remove-border/remap cycle before it can decorate the window.
+       Use the same borderless creation path as the working native apps. */
+    win = GrNewWindowEx(GR_WM_PROPS_APPWINDOW | GR_WM_PROPS_NORESIZE,
+        browser_mode ? "CDE File Manager" : "Select File", GR_ROOT_WINDOW_ID,
         (si.cols-win_width)/2 + WIN_CENTER_X_OFFSET,
         (si.rows-win_height)/2 + WIN_CENTER_Y_OFFSET,
-        win_width, win_height,
-        1, EGA_DGRAY, EGA_BLACK);
+        win_width, win_height, WIN_BG_COLOR);
 
-	set_title(win, browser_mode ? "CDE File Manager" : "Select File");
     gc = GrNewGC();
+    GrSetGCFont(gc, GrCreateFontEx(GR_FONT_SYSTEM_FIXED, 0, 0, NULL));
+    GrSetGCUseBackground(gc, GR_FALSE);
+    compute_layout();
 
     GrSelectEvents(win,
         GR_EVENT_MASK_EXPOSURE |
         GR_EVENT_MASK_BUTTON_DOWN |
         GR_EVENT_MASK_CLOSE_REQ);
 
-    GrMapWindow(win);
     load_directory(cwd);
+    GrMapWindow(win);
 
     while (running) {
         GrGetNextEvent(&ev);
