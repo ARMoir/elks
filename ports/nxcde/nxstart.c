@@ -50,6 +50,8 @@ static const struct app_info candidates[] = {
     { "Kilo Editor", "/bin/nxterm", "/bin/kilo", "/root/notes.txt" },
     { "Text Files",  "/bin/nxterm", "/bin/fm", NULL },
     { "BASIC",       "/bin/nxterm", "/bin/basic", NULL },
+    { "Space Invaders", "/bin/nxterm", "/bin/invaders", NULL },
+    { "Pong",        "/bin/nxterm", "/bin/ttypong", NULL },
     { NULL, NULL }
 };
 

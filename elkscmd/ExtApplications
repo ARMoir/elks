@@ -40,7 +40,7 @@ microwindows/src/bin/nxcalc                         :nanox  :1232c :1440k
 microwindows/src/bin/nxclock                        :nanox  :1232c :1440k
 microwindows/src/bin/nxeyes                         :ibmeyes
 microwindows/src/bin/nxselect                       :ibmselector
-microwindows/src/bin/nxmine                         :nanox  :1232c
+microwindows/src/bin/nxmine                         :nanox  :1232c :ibmgames
 microwindows/src/bin/nxstart                        :nanox  :1232c :1440k
 microwindows/src/bin/nxterm                         :nanox  :1232c :1440k
 microwindows/src/bin/nxtetris                       :nanox  :1232c :1440k

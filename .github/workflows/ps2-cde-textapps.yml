@@ -1,4 +1,4 @@
-name: IBM PS/2 CDE text apps and login desktop
+name: IBM PS/2 CDE small games and login desktop
 
 # GUI demo experiment; verified 830-byte BIOS floppy release unchanged.
 # Builds the exact event commit, including launcher and login profile.
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   cde_textapps_floppy:
-    name: Build PS/2 CDE with terminal apps and login startup
+    name: Build PS/2 CDE with Mines, Invaders and Pong
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
@@ -38,7 +38,7 @@ jobs:
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         run: tools/build.sh
 
-      - name: Build and verify desktop, terminal apps and login startup
+      - name: Build and verify desktop, text apps and three games
         shell: bash
         run: |
           set -euo pipefail
@@ -69,7 +69,10 @@ jobs:
           test -s target/bin/nxeyes
           test -s target/bin/nxstart
           test -s target/bin/nxselect
-          for app in nxterm kilo fm basic tty; do test -s "target/bin/$app"; done
+          for app in nxterm kilo fm basic tty nxmine invaders ttypong; do test -s "target/bin/$app"; done
+          grep -q '"Space Invaders", "/bin/nxterm", "/bin/invaders"' ports/nxcde/nxstart.c
+          grep -q '"Pong",.*"/bin/nxterm", "/bin/ttypong"' ports/nxcde/nxstart.c
+          grep -q '"Mines",.*"/bin/nxmine"' ports/nxcde/nxstart.c
           cmp ports/nxcde/login.profile target/root/.profile
           grep -q 'CDE_TEXTAPPS' extapps/microwindows/src/demos/nanox/nxterm.c
           grep -q 'program_argv = argv + 1' extapps/microwindows/src/demos/nanox/nxterm.c
@@ -120,7 +123,7 @@ jobs:
           test -s "$RUNNER_TEMP/nxselect-image"
           test -s "$RUNNER_TEMP/nxeyes-image"
           test -s "$RUNNER_TEMP/nxstart-image"
-          for app in nxterm kilo fm basic tty; do
+          for app in nxterm kilo fm basic tty nxmine invaders ttypong; do
             mcopy -i image/fd1440.img "::/bin/$app" "$RUNNER_TEMP/$app-image"
             test -s "$RUNNER_TEMP/$app-image"
           done
@@ -131,6 +134,6 @@ jobs:
       - name: Upload experimental PS/2 floppy image
         uses: actions/upload-artifact@v4
         with:
-          name: elks-ibm-ps2-cde-textapps-autostart-fd1440-fat
+          name: elks-ibm-ps2-cde-games-autostart-fd1440-fat
           path: image/fd1440.img
           if-no-files-found: error
