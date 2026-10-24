@@ -330,6 +330,25 @@ static void draw_window(void)
 
 /* ---------- Input ---------- */
 
+/*
+ * NanoWM reparents an app window into a decorated container. Raising
+ * only the inner client does not change its position among other apps.
+ * On a click, raise the actual top-level frame, then focus the client.
+ * Works for both normal nxselect selection and CDE's -b browser mode.
+ */
+static void activate_file_window(void)
+{
+    GR_WINDOW_INFO wi;
+    GrGetWindowInfo(win, &wi);
+    if (wi.wid != win)
+        return;
+    if (wi.parent && wi.parent != GR_ROOT_WINDOW_ID)
+        GrRaiseWindow(wi.parent);
+    else
+        GrRaiseWindow(win);
+    GrSetFocus(win);
+}
+
 static void handle_ok_click(void)
 {
     char full[MAX_PATH_LEN];
@@ -447,6 +466,7 @@ int main(int argc, char **argv)
         if (ev.type == GR_EVENT_TYPE_EXPOSURE)
             draw_window();
         else if (ev.type == GR_EVENT_TYPE_BUTTON_DOWN) {
+            activate_file_window();
 
             if (ev.button.x >= ok_x && ev.button.x <= ok_x+ok_w &&
                 ev.button.y >= ok_y && ev.button.y <= ok_y+ok_h)
