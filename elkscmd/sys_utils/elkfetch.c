@@ -173,34 +173,35 @@ int main(void)
         header_len = 39;
 
     puts("");
-    printf("    _____ _     _  __ ____     %s@%s\n", username, hostname);
-    printf("   | ____| |   | |/ // ___|    ");
+    /* Three blank logo rows center the artwork beside the information. */
+    printf(INFO_PREFIX "%s@%s\n", username, hostname);
+    printf(INFO_PREFIX);
     for (i = 0; i < header_len; i++)
         putchar('-');
     putchar('\n');
-    printf("   |  _| | |   | ' / \\___ \\    OS: %s %s\n", sysname, release);
-    printf("   | |___| |___| . \\  ___) |   Target: %s\n", machine);
+    printf(INFO_PREFIX "OS: %s %s\n", sysname, release);
+    printf("    _____ _     _  __ ____     Target: %s\n", machine);
 
     if (have_uptime) {
         days = seconds / 86400UL;
         seconds %= 86400UL;
         hours = seconds / 3600UL;
         minutes = (seconds % 3600UL) / 60UL;
-        printf("   |_____|_____|_|\\_\\|____/    Uptime: %ud %uh %um\n",
+        printf("   | ____| |   | |/ // ___|    Uptime: %ud %uh %um\n",
             days, hours, minutes);
     } else {
-        puts("   |_____|_____|_|\\_\\|____/    Uptime: unavailable");
+        puts("   | ____| |   | |/ // ___|    Uptime: unavailable");
     }
 
     if (have_system)
-        printf(INFO_PREFIX "CPU (probe): %s\n", cpu_name(system_info.cpu_class));
+        printf("   |  _| | |   | ' / \\___ \\    CPU (probe): %s\n", cpu_name(system_info.cpu_class));
     else
-        puts(INFO_PREFIX "CPU (probe): unavailable");
+        puts("   |  _| | |   | ' / \\___ \\    CPU (probe): unavailable");
     if (have_system)
-        printf(INFO_PREFIX "Processes: %u\n", system_info.processes);
+        printf("   | |___| |___| . \\  ___) |   Processes: %u\n", system_info.processes);
     else
-        puts(INFO_PREFIX "Processes: unavailable");
-    printf(INFO_PREFIX "Root FS: %s\n", root_filesystem());
+        puts("   | |___| |___| . \\  ___) |   Processes: unavailable");
+    printf("   |_____|_____|_|\\_\\|____/    Root FS: %s\n", root_filesystem());
     if (have_mem)
         printf(INFO_PREFIX "RAM: %u/%u KB used\n",
             mu.main_used, mu.main_used + mu.main_free);
