@@ -26,6 +26,7 @@
 
 #ifdef ELKS
 #include "curses.h"
+#include "gameframe.h"
 #include <signal.h>
 #else
 #include <curses.h>
@@ -219,6 +220,7 @@ int main(int argc, char **argv)
 		handleTimer();
 		switch (getch()) {
 		case 'q':
+		case 'Q':
 			cleanup(0);
 			break;
 		case 'j':
@@ -775,7 +777,7 @@ void initGame(void)
 {
 
 	// how many aliens?
-	if (COLS < 80 || LINES < 20) {
+	if (COLS < 76 || LINES < 20) {
 		fprintf(stderr, "Terminal size too small to play Ascii Invaders.\n");
 		cleanup(0);
 	}
@@ -791,42 +793,44 @@ void initGame(void)
 
 void paintIntro(void)
 {
+	/* Leave room for window chrome on the 21-line console playfield. */
+	int shift = LINES < 25 ? 2 : 0;
 	clear();
 
 #ifdef USE_COLORS
 	if (has_colors())
 		attron(COLOR_PAIR(4));
 #endif
-	mvprintw(2, (COLS / 2) - 30, "                _ _   _                     _               ");
-	mvprintw(3, (COLS / 2) - 30, "  __ _ ___  ___(_|_) (_)_ ____   ____ _  __| | ___ _ __ ___ ");
-	mvprintw(4, (COLS / 2) - 30, " / _` / __|/ __| | | | | '_ \\ \\ / / _` |/ _` |/ _ \\ '__/ __|");
-	mvprintw(5, (COLS / 2) - 30, "| (_| \\__ \\ (__| | | | | | | \\ V / (_| | (_| |  __/ |  \\__ \\");
-	mvprintw(6, (COLS / 2) - 30, " \\__,_|___/\\___|_|_| |_|_| |_|\\_/ \\__,_|\\__,_|\\___|_|  |___/");
+	mvprintw(2 - shift, (COLS / 2) - 30, "                _ _   _                     _               ");
+	mvprintw(3 - shift, (COLS / 2) - 30, "  __ _ ___  ___(_|_) (_)_ ____   ____ _  __| | ___ _ __ ___ ");
+	mvprintw(4 - shift, (COLS / 2) - 30, " / _` / __|/ __| | | | | '_ \\ \\ / / _` |/ _` |/ _ \\ '__/ __|");
+	mvprintw(5 - shift, (COLS / 2) - 30, "| (_| \\__ \\ (__| | | | | | | \\ V / (_| | (_| |  __/ |  \\__ \\");
+	mvprintw(6 - shift, (COLS / 2) - 30, " \\__,_|___/\\___|_|_| |_|_| |_|\\_/ \\__,_|\\__,_|\\___|_|  |___/");
 
 
 #ifdef USE_COLORS
 	if (has_colors())
 		attron(COLOR_PAIR(2));
 #endif
-	mvprintw(9, (COLS / 2) - 8, alienMa[0]);
-	mvprintw(10, (COLS / 2) - 8, alienMa[1]);
+	mvprintw(9 - shift, (COLS / 2) - 8, alienMa[0]);
+	mvprintw(10 - shift, (COLS / 2) - 8, alienMa[1]);
 #ifdef USE_COLORS
 	if (has_colors())
 		attron(COLOR_PAIR(4));
 #endif
-	mvprintw(9, (COLS / 2), "= ?  points");
+	mvprintw(9 - shift, (COLS / 2), "= ?  points");
 
-	mvprintw(12, (COLS / 2) - 8, alien30[0]);
-	mvprintw(13, (COLS / 2) - 8, alien30[1]);
-	mvprintw(12, (COLS / 2), "= 30 points");
+	mvprintw(12 - shift, (COLS / 2) - 8, alien30[0]);
+	mvprintw(13 - shift, (COLS / 2) - 8, alien30[1]);
+	mvprintw(12 - shift, (COLS / 2), "= 30 points");
 
-	mvprintw(15, (COLS / 2) - 8, alien20[0]);
-	mvprintw(16, (COLS / 2) - 8, alien20[1]);
-	mvprintw(15, (COLS / 2), "= 20 points");
+	mvprintw(15 - shift, (COLS / 2) - 8, alien20[0]);
+	mvprintw(16 - shift, (COLS / 2) - 8, alien20[1]);
+	mvprintw(15 - shift, (COLS / 2), "= 20 points");
 
-	mvprintw(18, (COLS / 2) - 8, alien10[0]);
-	mvprintw(19, (COLS / 2) - 8, alien10[1]);
-	mvprintw(18, (COLS / 2), "= 10 points");
+	mvprintw(18 - shift, (COLS / 2) - 8, alien10[0]);
+	mvprintw(19 - shift, (COLS / 2) - 8, alien10[1]);
+	mvprintw(18 - shift, (COLS / 2), "= 10 points");
 
 #ifdef USE_COLORS
 	if (has_colors())

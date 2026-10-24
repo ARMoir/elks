@@ -1,4 +1,4 @@
-name: IBM PS/2 CDE console game handoff
+name: IBM PS/2 CDE text game windows
 
 # GUI demo experiment; verified 830-byte BIOS floppy release unchanged.
 # Builds the exact event commit, including launcher and login profile.
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   cde_textapps_floppy:
-    name: Build PS/2 CDE with full-screen console games
+    name: Build PS/2 CDE with hardware-text game windows
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
@@ -69,6 +69,9 @@ jobs:
             -Iextapps/microwindows/src/demos/nanox -Iports/nxcde \
             ports/nxcde/test-invaders.c -o "$RUNNER_TEMP/test-invaders"
           "$RUNNER_TEMP/test-invaders"
+          python3 ports/nxcde/test-gameframe.py
+          gcc -std=gnu99 -Ielkscmd/tui ports/nxcde/test-pong.c -o "$RUNNER_TEMP/test-pong"
+          "$RUNNER_TEMP/test-pong"
           make -C image
 
           test -s target/bin/elkfetch
@@ -76,14 +79,16 @@ jobs:
           test -s target/bin/nxstart
           test -s target/bin/nxselect
           for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles nxcde; do test -s "target/bin/$app"; done
-          grep -q '"Invaders (TTY)", "/bin/invaders"' ports/nxcde/nxstart.c
-          grep -q '"Pong (TTY)", "/bin/ttypong"' ports/nxcde/nxstart.c
+          grep -q '"Invaders", "/bin/invaders"' ports/nxcde/nxstart.c
+          grep -q '"Pong", "/bin/ttypong"' ports/nxcde/nxstart.c
           grep -q '"Mines",.*"/bin/nxmine"' ports/nxcde/nxstart.c
           cmp ports/nxcde/login.profile target/root/.profile
           grep -q 'CDE_TEXTAPPS' extapps/microwindows/src/demos/nanox/nxterm.c
           grep -q 'program_argv = argv + 1' extapps/microwindows/src/demos/nanox/nxterm.c
           grep -q '/bin/nxcde' target/root/.profile
           cmp ports/nxcde/nxcde target/bin/nxcde
+          grep -q 'NXCDE_GAME=invaders /bin/invaders' target/bin/nxcde
+          grep -q 'NXCDE_GAME=pong /bin/ttypong' target/bin/nxcde
           printf 'ELKS source commit: '; git rev-parse HEAD
           printf 'Microwindows source commit: '; git -C extapps/microwindows rev-parse HEAD
           grep -q 'GrRaiseWindow(drawer)' ports/nxcde/nxstart.c
@@ -145,6 +150,6 @@ jobs:
       - name: Upload experimental PS/2 floppy image
         uses: actions/upload-artifact@v4
         with:
-          name: elks-ibm-ps2-cde-console-games-fd1440-fat
+          name: elks-ibm-ps2-cde-text-game-windows-fd1440-fat
           path: image/fd1440.img
           if-no-files-found: error

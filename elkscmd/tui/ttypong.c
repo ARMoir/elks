@@ -15,7 +15,7 @@ init_curses(void)
     clear();
 
     /* On check la taille du terminal */
-    if(COLS < FW || LINES < FH)
+    if(COLS <= FW || LINES <= FH)
     {
         endwin();
         fprintf(stderr, "Terminal too small (request %dx%d).\n", FH, FW);
@@ -27,7 +27,8 @@ init_curses(void)
     bg = (use_default_colors() == OK) ? -1 : COLOR_BLACK;
     init_pair(0, COLOR_GREEN, bg);
     init_pair(BALL,   COLOR_WHITE, bg);
-    init_pair(WALL,   COLOR_WHITE, COLOR_WHITE);
+    /* ELKS supports ANSI backgrounds 40-47, not bright background 107. */
+    init_pair(WALL,   COLOR_WHITE, COLOR_LIGHTGRAY);
     init_pair(RACKET, bg, COLOR_GREEN);
     init_pair(OUT,    bg, bg);
 
@@ -55,29 +56,41 @@ init_frame(void)
 void
 draw_frame(void)
 {
+    static unsigned char shown[FH + 1][FW + 1];
+    static int painted;
     int i, j;
-    int c, v, lastv = -1;
+    int c, v, run, lastv = -1;
 
-    for(i = 0; i <= FH; ++i)
+    for(i = 0; i <= FH; ++i) {
+        run = 0;
         for(j = 0; j <= FW; ++j)
         {
             v = pong->frame[i][j];
+            /* The console frame is static; update only ball/paddle changes. */
+            if (painted && shown[i][j] == v) {
+                run = 0;
+                continue;
+            }
             if (v != lastv) {
                 COL(v);
                 lastv = v;
             }
             c = (v == BALL) ? 'O' : ' ';
-            if (j == 0)
-                mvaddch(i, j + GX, c);
-            else addch(c);
+            if (!run) move(i, j + GX);
+            addch(c);
+            shown[i][j] = v;
+            run = 1;
         }
+    }
+    painted = 1;
+    refresh();
     return;
 }
 
 void
 key_event(void)
 {
-    int c;
+    int c, next;
 
     switch((c = getch()))
     {
@@ -100,8 +113,15 @@ key_event(void)
         /* Pause avec p ou P .. */
         case 'p':
         case 'P':
-            /* On attends tant que getch() soit pas egale à p ou P */
-            while(getch() != c);
+            /* Keep close/desktop controls responsive while paused. */
+            do {
+                usleep(20000L);
+                next = getch();
+                if (next == 'q' || next == 'Q') {
+                    pong->running = 0;
+                    return;
+                }
+            } while (next != 'p' && next != 'P');
             break;
     }
 

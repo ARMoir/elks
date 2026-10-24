@@ -7,16 +7,13 @@ while :; do
     case "$desktop_status" in
         41)
             /bin/stty sane
-            /bin/clear
-            /bin/invaders
+            NXCDE_GAME=invaders /bin/invaders
             ;;
         42)
             /bin/stty sane
-            /bin/clear
-            /bin/ttypong
+            NXCDE_GAME=pong /bin/ttypong
             ;;
         *) break ;;
     esac
     /bin/stty sane
-    /bin/clear
 done

@@ -54,8 +54,8 @@ static const struct app_info candidates[] = {
     { "Kilo Editor", "/bin/nxterm", "/bin/kilo", "/root/notes.txt" },
     { "Text Files",  "/bin/nxterm", "/bin/fm", NULL },
     { "BASIC",       "/bin/nxterm", "/bin/basic", NULL },
-    { "Invaders (TTY)", "/bin/invaders", NULL, NULL, CONSOLE_INVADERS },
-    { "Pong (TTY)", "/bin/ttypong", NULL, NULL, CONSOLE_PONG },
+    { "Invaders", "/bin/invaders", NULL, NULL, CONSOLE_INVADERS },
+    { "Pong", "/bin/ttypong", NULL, NULL, CONSOLE_PONG },
     { NULL, NULL }
 };
 
@@ -71,6 +71,7 @@ static GR_GC_ID gc;
 static int panel_x, panel_y, panel_width;
 static int drawer_height;
 static int last_minute = -1;
+static void play_console_game(void);
 static GR_COLOR backdrop[4] = {
     GR_COLOR_DARKSLATEGRAY,
     GR_COLOR_SLATEGRAY,
@@ -341,8 +342,8 @@ static void draw_game_dialog(void)
         label(game_dialog, 12, 45, "Close the other application windows first.", GR_COLOR_BLACK);
         label(game_dialog, 12, 64, "Then choose the game again.", GR_COLOR_BLACK);
     } else {
-        label(game_dialog, 12, 45, "Run full-screen with Nano-X stopped?", GR_COLOR_BLACK);
-        label(game_dialog, 12, 64, "The desktop returns when you quit the game.", GR_COLOR_BLACK);
+        label(game_dialog, 12, 45, "Open the game window?", GR_COLOR_BLACK);
+        label(game_dialog, 12, 64, "Ctrl+X closes it and returns to the desktop.", GR_COLOR_BLACK);
     }
     fill(game_dialog, 12, 94, 100, 27, GR_COLOR_LIGHTGRAY);
     relief(game_dialog, 12, 94, 100, 27, 0);
@@ -367,6 +368,10 @@ static void request_console_game(int status)
     pending_game = status;
     session_available = getenv("NXCDE_SESSION") != NULL;
     game_blocked = other_windows_open();
+    if (session_available && !game_blocked) {
+        play_console_game();
+        return;
+    }
     if (!game_dialog) {
         GrGetScreenInfo(&screen);
         game_dialog = GrNewWindowEx(GR_WM_PROPS_NODECORATE |

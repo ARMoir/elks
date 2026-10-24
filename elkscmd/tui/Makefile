@@ -35,13 +35,13 @@ sl: sl.o curses.o tty.o unikey.o
 ttyclock: ttyclock.o curses.o curses2.o curses3.o tty.o unikey.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-ttypong: ttypong.o curses.o curses2.o tty.o unikey.o
+ttypong: ttypong.o gameframe.o curses.o curses2.o tty.o unikey.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 tetris: ttytetris.o tetris-frame.o tetris-shapes.o tetris-util.o
 	$(LD) $(LDFLAGS) -o tetris $^ $(LDLIBS)
 
-invaders: invaders.o curses.o curses2.o tty.o unikey.o
+invaders: invaders.o gameframe.o curses.o curses2.o tty.o unikey.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 install: $(PRGS)

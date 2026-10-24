@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include "unikey.h"
 #include "curses.h"
+#ifdef ELKS
+#include "gameframe.h"
+#endif
 
 /* Options */
 #define FH 20
