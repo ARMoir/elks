@@ -271,13 +271,26 @@ static void drawer_draw(void)
           "Exit to shell", GR_COLOR_BLACK);
 }
 
+/*
+ * The drawer and panel are independent root children (the drawer isn't
+ * a child of the panel, since a child would be clipped to the panel's
+ * 62-pixel area). GrMapWindow does not guarantee the popup will be
+ * above another application's NanoWM frame.
+ *
+ * Bring the panel forward first and the popup last so the popup is at
+ * the top of the root sibling stack only when it is open. No polling
+ * or permanent always-on-top loop, and don't steal keyboard focus.
+ */
 static void show_drawer(int show)
 {
     drawer_open = show;
-    if (show)
+    if (show) {
+        GrRaiseWindow(panel);
         GrMapWindow(drawer);
-    else
+        GrRaiseWindow(drawer);
+    } else {
         GrUnmapWindow(drawer);
+    }
     draw_panel();
 }
 
@@ -404,6 +417,11 @@ int main(void)
                 drawer_draw();
         } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
             if (event.button.wid == panel) {
+                /* A clicked Front Panel comes to the front, while an
+                   open drawer remains stacked above the panel. */
+                GrRaiseWindow(panel);
+                if (drawer_open)
+                    GrRaiseWindow(drawer);
                 on_panel_click(event.button.x, event.button.y);
             } else if (event.button.wid == drawer) {
                 row = (event.button.y - 20) / ROW_HEIGHT;
