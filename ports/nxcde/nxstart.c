@@ -38,6 +38,7 @@ struct app_info {
 static const struct app_info candidates[] = {
     { "Terminal",   "/bin/nxterm"   },
     { "Eyes",       "/bin/nxeyes"   },
+    { "Files",      "/bin/nxselect" },
     { "Calculator", "/bin/nxcalc"   },
     { "Clock",      "/bin/nxclock"  },
     { "Tetris",     "/bin/nxtetris" },
@@ -212,6 +213,7 @@ static void draw_panel(void)
             /* Choice of pixel glyph independent of optional app order. */
             int glyph = !strcmp(apps[idx].label, "Terminal") ? 1 :
                         !strcmp(apps[idx].label, "Eyes") ? 2 :
+                        !strcmp(apps[idx].label, "Files") ? 0 :
                         !strcmp(apps[idx].label, "Calculator") ? 3 : 4;
             draw_button(x, 55,
                         !strcmp(apps[idx].label, "Calculator") ? "Calc" :
@@ -283,9 +285,18 @@ static void launch_app(const char *path)
 {
     char *argv[2];
     argv[0] = (char *)path;
-    argv[1] = NULL;
+    argv[1] = !strcmp(path, "/bin/nxselect") ? "-b" : NULL;
+    /* CDE opens nxselect in standalone browser mode, while other callers
+       retain the stock file-chooser protocol. */
+    /* Two argument slots: programs require a trailing NULL. */
     if (vfork() == 0) {
-        execv(path, argv);
+        if (argv[1]) {
+            char *browser_args[3];
+            browser_args[0] = argv[0];
+            browser_args[1] = argv[1];
+            browser_args[2] = NULL;
+            execv(path, browser_args);
+        } else execv(path, argv);
         _exit(127);
     }
 }
