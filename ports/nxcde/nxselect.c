@@ -212,6 +212,10 @@ static void draw_text_file(void)
     const char *name = strrchr(selected_path, '/');
     GrSetGCForeground(gc, GR_RGB(0,0,128));
     GrFillRect(win, gc, MARGIN, g_list_top, g_list_width, ITEM_HEIGHT);
+    /* Reuse upstream scroll affordances in preview mode. */
+    draw_triangle_up(win_width-SCROLL_WIDTH-MARGIN, g_list_top);
+    draw_triangle_down(win_width-SCROLL_WIDTH-MARGIN,
+                       g_list_top+g_list_height-SCROLL_WIDTH);
     GrSetGCForeground(gc, EGA_WHITE);
     name = name ? name + 1 : selected_path;
     GrText(win, gc, MARGIN+4, g_list_top+ITEM_HEIGHT-4,
@@ -260,6 +264,13 @@ static void draw_window(void)
     }
     if (showing_file) {
         draw_text_file();
+        {
+            char page_label[18];
+            sprintf(page_label, "Text page %d", file_page + 1);
+            GrSetGCForeground(gc, EGA_BLACK);
+            GrText(win, gc, MARGIN+6, ok_y+ok_h/2+4,
+                   page_label, strlen(page_label), GR_TFASCII);
+        }
         GrSetGCForeground(gc, OK_BG_COLOR);
         GrFillRect(win, gc, ok_x, ok_y, ok_w, ok_h);
         GrSetGCForeground(gc, OK_FG_COLOR);
@@ -274,7 +285,7 @@ static void draw_window(void)
     GrSetGCForeground(gc,
         selected_index == 0 ? SEL_BG_COLOR : DIR_BG_COLOR);
     GrFillRect(win, gc, MARGIN, y, g_list_width, ITEM_HEIGHT);
-    GrSetGCForeground(gc, FILE_FG_COLOR);
+    GrSetGCForeground(gc, selected_index == 0 ? EGA_WHITE : DIR_FG_COLOR);
     GrText(win, gc, MARGIN+2, y+ITEM_HEIGHT-4,
            ".", 1, GR_TFASCII);
     y += ITEM_HEIGHT + ITEM_SPACING;
@@ -289,7 +300,7 @@ static void draw_window(void)
             file_is_dir[idx] ? DIR_BG_COLOR : FILE_BG_COLOR);
 
         GrFillRect(win, gc, MARGIN, y, g_list_width, ITEM_HEIGHT);
-        GrSetGCForeground(gc, FILE_FG_COLOR);
+        GrSetGCForeground(gc, idx == selected_index ? EGA_WHITE : FILE_FG_COLOR);
         GrText(win, gc, MARGIN+2, y+ITEM_HEIGHT-4,
                file_list[idx], strlen(file_list[idx]), GR_TFASCII);
         y += ITEM_HEIGHT + ITEM_SPACING;
