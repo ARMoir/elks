@@ -1,0 +1,7 @@
+Build PS/2 CDE V3 with upstream nxselect browser and shared NanoWM 16-color titlebar theme.
+Source branch: ibm-ps2-nxcde-selector-theme-test (derived from hardware-verified CDE Front Panel).
+Package nxselect as /bin/nxselect with --browse and preserve regular selector output protocol.
+Front Panel Files entry launches /bin/nxselect -b; no homegrown nxfiles app in this build.
+Patch SCHEME_NUK16 palette in existing NanoWM to align all application titlebars/frames.
+Preserve 830-byte stacks, BIOS floppy, automatic rm -f /tmp/nxsock, mouse, XEyes and elkfetch.
+Separate experimental FAT12 floppy; verified release untouched.
