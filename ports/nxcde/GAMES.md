@@ -8,7 +8,7 @@ The Apps drawer offers:
 | Entry | Program | Interface | Controls |
 | --- | --- | --- | --- |
 | Mines | `/bin/nxmine` | Native Nano-X window | Mouse; use the on-screen controls |
-| Space Invaders | `/bin/invaders` | Titled nxterm window | Left/right arrows or j/k; Space fires; q quits |
+| Space Invaders | `/bin/invaders` | Titled nxterm window | j/k move left/right; Space starts/fires; q quits |
 | Pong | `/bin/ttypong` | Titled nxterm window | Up/down arrows or k/j; p pauses; q quits |
 
 Mines is already built by upstream Microwindows. The PS/2 image now packages
@@ -23,8 +23,8 @@ is unchanged, and each game can be closed using its window close button.
 
 1. Log in and check the desktop opens, then open Apps and launch each game.
 2. Check Mines accepts mouse clicks and its controls remain accessible.
-3. Check Invaders movement/firing and Pong movement/pause/quit. If arrow
-   keys behave differently, test the letter-key alternatives listed above.
+3. Check Invaders movement/firing with j/k and Space, and Pong movement,
+   pause and quit. For Pong, also test its arrow-key alternatives.
 4. Overlap and move windows; check redraw and click-to-focus behavior.
 5. Quit and relaunch several times to check terminal/PTY cleanup.
 6. Exit the desktop and check for orphan game processes using `ps`.
