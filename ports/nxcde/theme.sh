@@ -13,10 +13,10 @@ python3 - "$src/nanox/nxdraw.c" <<'PY'
 import pathlib, re, sys
 path = pathlib.Path(sys.argv[1])
 text = path.read_text()
-start = text.find("#ifdef SCHEME_TAN")
+start = text.find("#if SCHEME_NUK16")
 end = text.find("\n#endif", start)
 if start < 0 or end < 0:
-    raise SystemExit("CDE theme: Microwindows SCHEME_TAN color table changed")
+    raise SystemExit("CDE theme: Microwindows SCHEME_NUK16 color table changed")
 part = text[start:end]
 colors = {
     "GR_COLOR_DESKTOP":             (0, 128, 128),    # CDE teal
