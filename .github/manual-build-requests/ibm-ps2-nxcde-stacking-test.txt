@@ -1,0 +1,6 @@
+IBM PS/2 CDE popup menu / active file window stacking test.
+Source branch ibm-ps2-nxcde-stacking-test based on v3 CDE themed selector.
+On Front Panel click, raise panel; on Apps opening raise panel then popup so popup sits above app frames.
+On nxselect click, raise the decorated NanoWM parent frame and focus client.
+Preserve kernel, PS/2 mouse, XEyes, FDC, 830-byte stacks, elkfetch, rc.sys socket cleanup.
+Create separate 1.44MB FAT12 floppy; do not overwrite hardware-verified CDE release.
