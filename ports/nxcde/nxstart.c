@@ -571,9 +571,9 @@ int main(void)
                 else if (event.keystroke.ch == MWKEY_ENTER)
                     play_console_game();
             } else if (event.keystroke.wid == panel) {
-                if (event.keystroke.ch == MWKEY_F5)
+                if (event.keystroke.ch == 'i' || event.keystroke.ch == 'I')
                     request_console_game(CONSOLE_INVADERS);
-                else if (event.keystroke.ch == MWKEY_F6)
+                else if (event.keystroke.ch == 'p' || event.keystroke.ch == 'P')
                     request_console_game(CONSOLE_PONG);
             }
         } else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) {

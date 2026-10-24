@@ -20,7 +20,7 @@ Their menu entries now use the original console programs with Nano-X stopped.
 4. The `nxcde` session wrapper runs the original game directly on the console.
 5. Quitting the game restores terminal settings and starts a fresh desktop.
 
-F5 opens the Invaders launch prompt and F6 opens Pong when the Front Panel has
+I opens the Invaders launch prompt and P opens Pong when the Front Panel has
 keyboard focus. Escape cancels the prompt. If another application is open,
 the prompt explains that it must be closed; it never forcibly closes it.
 
