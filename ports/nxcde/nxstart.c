@@ -25,13 +25,15 @@
 #define PANEL_Y_OFFSET 65
 #define DRAWER_WIDTH 146
 #define ROW_HEIGHT 18
-#define MAX_APPS 12
+#define MAX_APPS 16
 #define QUICK_COUNT 4
 #define POLL_MS 4500L
 
 struct app_info {
     const char *label;
     const char *path;
+    const char *command;  /* Non-NULL: run this program in nxterm. */
+    const char *argument;
 };
 
 /* Only binaries actually present on the target filesystem will show. */
@@ -45,6 +47,9 @@ static const struct app_info candidates[] = {
     { "Mines",      "/bin/nxmine"   },
     { "World",      "/bin/nxworld"  },
     { "Editor",     "/bin/nxedit"   },
+    { "Kilo Editor", "/bin/nxterm", "/bin/kilo", "/root/notes.txt" },
+    { "Text Files",  "/bin/nxterm", "/bin/fm", NULL },
+    { "BASIC",       "/bin/nxterm", "/bin/basic", NULL },
     { NULL, NULL }
 };
 
@@ -92,6 +97,9 @@ static void find_installed_apps(void)
 
     for (i = 0; candidates[i].label && app_count < MAX_APPS - 1; ++i) {
         if (access(candidates[i].path, F_OK) != 0)
+            continue;
+        if (candidates[i].command &&
+            access(candidates[i].command, F_OK) != 0)
             continue;
         apps[app_count] = candidates[i];
         ++app_count;
@@ -294,22 +302,24 @@ static void show_drawer(int show)
     draw_panel();
 }
 
-static void launch_app(const char *path)
+static void launch_app(const struct app_info *app)
 {
-    char *argv[2];
-    argv[0] = (char *)path;
-    argv[1] = !strcmp(path, "/bin/nxselect") ? "-b" : NULL;
-    /* CDE opens nxselect in standalone browser mode, while other callers
-       retain the stock file-chooser protocol. */
-    /* Two argument slots: programs require a trailing NULL. */
+    char *argv[7];
+    int n = 0;
+    argv[n++] = (char *)app->path;
+    if (app->command) {
+        argv[n++] = "-t";
+        argv[n++] = (char *)app->label;
+        argv[n++] = "-e";
+        argv[n++] = (char *)app->command;
+        if (app->argument)
+            argv[n++] = (char *)app->argument;
+    } else if (!strcmp(app->path, "/bin/nxselect")) {
+        argv[n++] = "-b";
+    }
+    argv[n] = NULL;
     if (vfork() == 0) {
-        if (argv[1]) {
-            char *browser_args[3];
-            browser_args[0] = argv[0];
-            browser_args[1] = argv[1];
-            browser_args[2] = NULL;
-            execv(path, browser_args);
-        } else execv(path, argv);
+        execv(app->path, argv);
         _exit(127);
     }
 }
@@ -329,7 +339,7 @@ static void on_panel_click(int x, int y)
         if (i < QUICK_COUNT && quick[i] >= 0) {
             if (drawer_open)
                 show_drawer(0);
-            launch_app(apps[quick[i]].path);
+            launch_app(&apps[quick[i]]);
         }
         return;
     }
@@ -428,7 +438,7 @@ int main(void)
                 if (event.button.y >= 20 && row >= 0) {
                     if (row < app_count) {
                         show_drawer(0);
-                        launch_app(apps[row].path);
+                        launch_app(&apps[row]);
                     } else if (row == app_count) {
                         quit_desktop();
                     }

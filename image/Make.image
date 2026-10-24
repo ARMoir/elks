@@ -52,7 +52,7 @@ ifdef CONFIG_IBM_PS2_DIAGNOSTIC
 	# Run elkfetch only after successful interactive root login.
 	# The original rc.sys invocation ended in KSTACK(7) on 2 MB real hardware.
 	# ash loads /root/.profile on login but rc.sys only sources /etc/profile.
-	printf '# IBM diagnostic welcome screen after login.\n/bin/elkfetch\n' > $(DESTDIR)/root/.profile
+	cp $(TOPDIR)/ports/nxcde/login.profile $(DESTDIR)/root/.profile
 	# Nano-X stale socket cleanup runs in rc.sys; elkfetch remains login-only.
 endif
 	-chmod 777 $(DESTDIR)/tmp

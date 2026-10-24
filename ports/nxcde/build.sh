@@ -10,4 +10,8 @@ cp "$TOPDIR/ports/nxcde/nxstart.c" "$demos/nxstart.c"
 rm -f "$demos/nxstart.o" "$TOPDIR/extapps/microwindows/src/bin/nxstart"
 make -C "$demos" -f Makefile.elks ../../bin/nxstart
 test -s "$TOPDIR/extapps/microwindows/src/bin/nxstart"
+python3 "$TOPDIR/ports/nxcde/textapps.py" "$demos/nxterm.c"
+rm -f "$demos/nxterm.o"
+make -C "$demos" -f Makefile.elks ../../bin/nxterm
+test -s "$TOPDIR/extapps/microwindows/src/bin/nxterm"
 echo "nxcde: CDE-inspired front panel built as /bin/nxstart"
