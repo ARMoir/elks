@@ -1,4 +1,4 @@
-name: IBM PS/2 CDE Files fix and native Invaders
+name: IBM PS/2 CDE custom Files and native Invaders
 
 # GUI demo experiment; verified 830-byte BIOS floppy release unchanged.
 # Builds the exact event commit, including launcher and login profile.
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   cde_textapps_floppy:
-    name: Build PS/2 CDE with Files fix and native Invaders
+    name: Build PS/2 CDE with restored custom Files
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
@@ -62,6 +62,7 @@ jobs:
           ./buildext.sh microwindows
           bash ports/nxeyes/build.sh
           bash ports/nxcde/build.sh
+          bash ports/nxfiles/build.sh
           bash ports/nxcde/theme.sh
           # Exercise the actual game engine with its native display adapter.
           gcc -std=gnu99 -Iextapps/microwindows/src/include \
@@ -74,7 +75,7 @@ jobs:
           test -s target/bin/nxeyes
           test -s target/bin/nxstart
           test -s target/bin/nxselect
-          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong; do test -s "target/bin/$app"; done
+          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles; do test -s "target/bin/$app"; done
           grep -q '"Space Invaders", "/bin/nxinvaders"' ports/nxcde/nxstart.c
           grep -q '"Pong",.*"/bin/nxterm", "/bin/ttypong"' ports/nxcde/nxstart.c
           grep -q '"Mines",.*"/bin/nxmine"' ports/nxcde/nxstart.c
@@ -89,12 +90,15 @@ jobs:
           grep -q 'activate_file_window()' ports/nxcde/nxselect.c
           grep -q 'GrRaiseWindow(wi.parent)' ports/nxcde/nxselect.c
           grep -q 'GrSetFocus(win)' ports/nxcde/nxselect.c
-          grep -q '"Files",      "/bin/nxselect"' ports/nxcde/nxstart.c
+          grep -q '"Files",      "/bin/nxfiles"' ports/nxcde/nxstart.c
           grep -q 'browser_mode' extapps/microwindows/src/demos/nanox/nxselect.c
           grep -q 'CDE_TEAL' extapps/microwindows/src/demos/nanox/nxselect.c
           grep -q 'GR_RGB(  0,  64,  96)' extapps/microwindows/src/nanox/nxdraw.c
           grep -q 'GR_RGB(  0, 128, 128)' extapps/microwindows/src/nanox/nxdraw.c
           cmp ports/nxcde/nxstart.c extapps/microwindows/src/demos/nanox/nxstart.c
+          cmp ports/nxfiles/nxfiles.c extapps/microwindows/src/demos/nanox/nxfiles.c
+          grep -q 'activate_file_window();' ports/nxfiles/nxfiles.c
+          grep -q 'GR_WM_PROPS_NORESIZE' ports/nxfiles/nxfiles.c
           grep -q 'find_installed_apps()' ports/nxcde/nxstart.c
           grep -q 'access(candidates\[i\].path, F_OK)' ports/nxcde/nxstart.c
           grep -q 'BACKDROP' ports/nxcde/nxstart.c
@@ -128,7 +132,7 @@ jobs:
           test -s "$RUNNER_TEMP/nxselect-image"
           test -s "$RUNNER_TEMP/nxeyes-image"
           test -s "$RUNNER_TEMP/nxstart-image"
-          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong; do
+          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles; do
             mcopy -i image/fd1440.img "::/bin/$app" "$RUNNER_TEMP/$app-image"
             test -s "$RUNNER_TEMP/$app-image"
           done
@@ -139,6 +143,6 @@ jobs:
       - name: Upload experimental PS/2 floppy image
         uses: actions/upload-artifact@v4
         with:
-          name: elks-ibm-ps2-cde-files-native-invaders-fd1440-fat
+          name: elks-ibm-ps2-cde-custom-files-native-invaders-fd1440-fat
           path: image/fd1440.img
           if-no-files-found: error

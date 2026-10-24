@@ -40,7 +40,7 @@ struct app_info {
 static const struct app_info candidates[] = {
     { "Terminal",   "/bin/nxterm"   },
     { "Eyes",       "/bin/nxeyes"   },
-    { "Files",      "/bin/nxselect" },
+    { "Files",      "/bin/nxfiles"  },
     { "Calculator", "/bin/nxcalc"   },
     { "Clock",      "/bin/nxclock"  },
     { "Tetris",     "/bin/nxtetris" },
