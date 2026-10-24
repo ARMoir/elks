@@ -5,3 +5,5 @@ Front Panel Files entry launches /bin/nxselect -b; no homegrown nxfiles app in t
 Patch SCHEME_NUK16 palette in existing NanoWM to align all application titlebars/frames.
 Preserve 830-byte stacks, BIOS floppy, automatic rm -f /tmp/nxsock, mouse, XEyes and elkfetch.
 Separate experimental FAT12 floppy; verified release untouched.
+
+Polish pass: source update 87a8fac8dc83a386a5bb151f20b28a7bfba2d3a5 improves text contrast and preview page controls; rebuild exact branch.
