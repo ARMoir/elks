@@ -5,8 +5,8 @@
 if test ! -f /root/nox; then
     case "`/bin/tty`" in
         /dev/tty1)
-            if test -x /bin/nxstart; then
-                /bin/nxstart
+            if test -x /bin/nxcde; then
+                /bin/nxcde
             fi
             ;;
     esac

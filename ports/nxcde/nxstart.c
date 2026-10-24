@@ -17,6 +17,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 #include "nano-X.h"
 #include "nxcolors.h"
 
@@ -28,12 +29,15 @@
 #define MAX_APPS 16
 #define QUICK_COUNT 4
 #define POLL_MS 4500L
+#define CONSOLE_INVADERS 41
+#define CONSOLE_PONG 42
 
 struct app_info {
     const char *label;
     const char *path;
     const char *command;  /* Non-NULL: run this program in nxterm. */
     const char *argument;
+    int console_status;  /* Exit code handled by the nxcde session wrapper. */
 };
 
 /* Only binaries actually present on the target filesystem will show. */
@@ -50,8 +54,8 @@ static const struct app_info candidates[] = {
     { "Kilo Editor", "/bin/nxterm", "/bin/kilo", "/root/notes.txt" },
     { "Text Files",  "/bin/nxterm", "/bin/fm", NULL },
     { "BASIC",       "/bin/nxterm", "/bin/basic", NULL },
-    { "Space Invaders", "/bin/nxinvaders" },
-    { "Pong",        "/bin/nxterm", "/bin/ttypong", NULL },
+    { "Invaders (TTY)", "/bin/invaders", NULL, NULL, CONSOLE_INVADERS },
+    { "Pong (TTY)", "/bin/ttypong", NULL, NULL, CONSOLE_PONG },
     { NULL, NULL }
 };
 
@@ -61,6 +65,8 @@ static int quick[QUICK_COUNT];
 static int view = 0;
 static int drawer_open;
 static GR_WINDOW_ID panel, drawer;
+static GR_WINDOW_ID game_dialog;
+static int pending_game, game_blocked, session_available;
 static GR_GC_ID gc;
 static int panel_x, panel_y, panel_width;
 static int drawer_height;
@@ -304,10 +310,109 @@ static void show_drawer(int show)
     draw_panel();
 }
 
+static int other_windows_open(void)
+{
+    GR_WINDOW_INFO info;
+    GR_WINDOW_ID id;
+    int count;
+    GrGetWindowInfo(GR_ROOT_WINDOW_ID, &info);
+    id = info.child;
+    for (count = 0; id && count < 64; ++count) {
+        if (id != panel && id != drawer && id != game_dialog)
+            return 1;
+        GrGetWindowInfo(id, &info);
+        if (info.wid != id) return 1;
+        id = info.sibling;
+    }
+    return id != 0;
+}
+
+static void draw_game_dialog(void)
+{
+    fill(game_dialog, 0, 0, 370, 132, GR_COLOR_GRAY);
+    relief(game_dialog, 0, 0, 370, 132, 0);
+    fill(game_dialog, 3, 3, 364, 19, GR_COLOR_DARKSLATEGRAY);
+    label(game_dialog, 10, 17,
+          pending_game == CONSOLE_INVADERS ? "Space Invaders" : "Pong",
+          GR_COLOR_WHITE);
+    if (!session_available) {
+        label(game_dialog, 12, 45, "Exit the desktop and run nxcde first.", GR_COLOR_BLACK);
+    } else if (game_blocked) {
+        label(game_dialog, 12, 45, "Close the other application windows first.", GR_COLOR_BLACK);
+        label(game_dialog, 12, 64, "Then choose the game again.", GR_COLOR_BLACK);
+    } else {
+        label(game_dialog, 12, 45, "Run full-screen with Nano-X stopped?", GR_COLOR_BLACK);
+        label(game_dialog, 12, 64, "The desktop returns when you quit the game.", GR_COLOR_BLACK);
+    }
+    fill(game_dialog, 12, 94, 100, 27, GR_COLOR_LIGHTGRAY);
+    relief(game_dialog, 12, 94, 100, 27, 0);
+    label(game_dialog, 39, 112, "Cancel", GR_COLOR_BLACK);
+    if (session_available && !game_blocked) {
+        fill(game_dialog, 258, 94, 100, 27, GR_COLOR_LIGHTGRAY);
+        relief(game_dialog, 258, 94, 100, 27, 0);
+        label(game_dialog, 286, 112, "Play", GR_COLOR_BLACK);
+    }
+}
+
+static void close_game_dialog(void)
+{
+    if (game_dialog) GrDestroyWindow(game_dialog);
+    game_dialog = 0;
+    GrSetFocus(panel);
+}
+
+static void request_console_game(int status)
+{
+    GR_SCREEN_INFO screen;
+    pending_game = status;
+    session_available = getenv("NXCDE_SESSION") != NULL;
+    game_blocked = other_windows_open();
+    if (!game_dialog) {
+        GrGetScreenInfo(&screen);
+        game_dialog = GrNewWindowEx(GR_WM_PROPS_NODECORATE |
+            GR_WM_PROPS_NOAUTOMOVE | GR_WM_PROPS_NORESIZE,
+            "Console game", GR_ROOT_WINDOW_ID,
+            (screen.cols - 370) / 2, (screen.rows - 132) / 2,
+            370, 132, GR_COLOR_GRAY);
+        GrSelectEvents(game_dialog, GR_EVENT_MASK_EXPOSURE |
+            GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_KEY_DOWN);
+    }
+    GrMapWindow(game_dialog);
+    GrRaiseWindow(game_dialog);
+    GrSetFocus(game_dialog);
+    draw_game_dialog();
+}
+
+static void play_console_game(void)
+{
+    int pid;
+    /* Never terminate another application to launch a game. */
+    game_blocked = other_windows_open();
+    if (!session_available || game_blocked) {
+        draw_game_dialog();
+        return;
+    }
+    signal(SIGCHLD, SIG_DFL);
+    signal(SIGTERM, SIG_IGN);
+    /* Close cleanly while the server can still read the Close request. */
+    GrClose();
+    kill(-getpid(), SIGTERM);
+    /* The auto-started server is our child. Wait for it to restore VGA,
+       keyboard and mouse state before the session starts a console game. */
+    do {
+        pid = waitpid(-1, NULL, 0);
+    } while (pid > 0 || (pid < 0 && errno == EINTR));
+    exit(pending_game);
+}
+
 static void launch_app(const struct app_info *app)
 {
     char *argv[7];
     int n = 0;
+    if (app->console_status) {
+        request_console_game(app->console_status);
+        return;
+    }
     argv[n++] = (char *)app->path;
     if (app->command) {
         argv[n++] = "-t";
@@ -412,11 +517,13 @@ int main(void)
     GrSetGCFont(gc, GrCreateFontEx(GR_FONT_SYSTEM_FIXED, 0, 0, NULL));
     GrSelectEvents(panel, GR_EVENT_MASK_EXPOSURE |
                           GR_EVENT_MASK_BUTTON_DOWN |
+                          GR_EVENT_MASK_KEY_DOWN |
                           GR_EVENT_MASK_CLOSE_REQ);
     GrSelectEvents(drawer, GR_EVENT_MASK_EXPOSURE |
                            GR_EVENT_MASK_BUTTON_DOWN);
     apply_backdrop();
     GrMapWindow(panel);
+    GrSetFocus(panel);
 
     for (;;) {
         memset(&event, 0, sizeof(event));
@@ -427,8 +534,17 @@ int main(void)
                 draw_panel();
             else if (event.exposure.wid == drawer)
                 drawer_draw();
+            else if (event.exposure.wid == game_dialog)
+                draw_game_dialog();
         } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
-            if (event.button.wid == panel) {
+            if (game_dialog && event.button.wid == game_dialog) {
+                if (event.button.y >= 94 && event.button.y < 121) {
+                    if (event.button.x >= 12 && event.button.x < 112)
+                        close_game_dialog();
+                    else if (event.button.x >= 258 && event.button.x < 358)
+                        play_console_game();
+                }
+            } else if (event.button.wid == panel) {
                 /* A clicked Front Panel comes to the front, while an
                    open drawer remains stacked above the panel. */
                 GrRaiseWindow(panel);
@@ -447,6 +563,18 @@ int main(void)
                 }
             } else if (drawer_open) {
                 show_drawer(0);
+            }
+        } else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
+            if (game_dialog && event.keystroke.wid == game_dialog) {
+                if (event.keystroke.ch == MWKEY_ESCAPE)
+                    close_game_dialog();
+                else if (event.keystroke.ch == MWKEY_ENTER)
+                    play_console_game();
+            } else if (event.keystroke.wid == panel) {
+                if (event.keystroke.ch == MWKEY_F5)
+                    request_console_game(CONSOLE_INVADERS);
+                else if (event.keystroke.ch == MWKEY_F6)
+                    request_console_game(CONSOLE_PONG);
             }
         } else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) {
             quit_desktop();

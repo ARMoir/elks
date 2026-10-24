@@ -182,7 +182,7 @@ ifndef CONFIG_SYS_NO_BININIT
 endif
 
 ifdef CONFIG_IBM_PS2_DIAGNOSTIC
-	TAGS += :ibmfetch|:ibmeyes|:ibmselector|:ibmgames|:ibmfiles|
+	TAGS += :ibmfetch|:ibmeyes|:ibmselector|:ibmgames|:ibmfiles|:ibmsession|
 endif
 
 TAGS += :end

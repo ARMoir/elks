@@ -1,48 +1,42 @@
-# Three small desktop games
+# Games and the console handoff
 
-This image keeps the console-login desktop startup, text applications,
-and popup/window stacking fixes from the preceding experimental image.
+Real PS/2 feedback found both windowed Pong and windowed Invaders too slow,
+including the native Invaders adapter. Invaders ran acceptably without the UI.
+Their menu entries now use the original console programs with Nano-X stopped.
 
-The Apps drawer offers:
-
-| Entry | Program | Interface | Controls |
+| Apps entry | Program | Interface | Controls |
 | --- | --- | --- | --- |
-| Mines | `/bin/nxmine` | Native Nano-X window | Mouse; use the on-screen controls |
-| Space Invaders | `/bin/nxinvaders` | Native Nano-X window | Left/right or j/k move; Space starts/fires; q or Esc quits |
-| Pong | `/bin/ttypong` | Titled nxterm window | Up/down arrows or k/j; p pauses; q quits |
+| Mines | `/bin/nxmine` | Nano-X window | Mouse and on-screen controls |
+| Invaders (TTY) | `/bin/invaders` | Full-screen console | j/k move; Space starts/fires; q quits |
+| Pong (TTY) | `/bin/ttypong` | Full-screen console | Up/down or k/j; p pauses; q quits |
 
-Mines is already built by upstream Microwindows. The PS/2 image packages
-it using a diagnostic-image-only tag. Pong uses nxterm's direct `-e` interface.
-Invaders now uses the existing game's logic with a native Nano-X display:
-only changed character runs are drawn, once per game tick. It needs no PTY,
-ANSI interpreter or extra shell. The original `/bin/invaders` stays available
-for use at the plain console. No extra game data files are needed.
+## Starting a console game
 
-Entries are still filtered against installed binaries. Quick-launch ordering
-is unchanged, and each game can be closed using its window close button.
+1. Close other application windows, including terminals and Files. This
+   requirement avoids terminating an editor or another app with work open.
+2. Select the game from Apps, then choose Play (or press Enter).
+3. The panel closes its Nano-X connection, stops its process group and waits
+   for the server to finish restoring VGA, keyboard and mouse state.
+4. The `nxcde` session wrapper runs the original game directly on the console.
+5. Quitting the game restores terminal settings and starts a fresh desktop.
 
-## Verify on the PS/2
+F5 opens the Invaders launch prompt and F6 opens Pong when the Front Panel has
+keyboard focus. Escape cancels the prompt. If another application is open,
+the prompt explains that it must be closed; it never forcibly closes it.
 
-1. Log in and check the desktop opens, then open Apps and launch each game.
-2. Check Mines accepts mouse clicks and its controls remain accessible.
-3. Check Invaders movement/firing with j/k and Space, and Pong movement,
-   pause and quit. For Pong, also test its arrow-key alternatives.
-4. Overlap and move windows; check redraw and click-to-focus behavior.
-5. Quit and relaunch several times to check terminal/PTY cleanup.
-6. Exit the desktop and check for orphan game processes using `ps`.
+Root console login now starts `/bin/nxcde`. Use `nxcde` for manual startup as
+well. Exit still returns to the login shell and does not reopen the desktop.
+The `/root/nox` opt-out and serial/PTY login exclusions are unchanged.
 
-Start with one game at a time on 2 MB hardware. Build and image checks cannot
-establish animation speed, terminal rendering, or real-hardware stability.
+The custom Files browser, repaired nxselect, other text-application shortcuts,
+and graphical Mines remain. `/bin/nxinvaders` is retained as an experimental
+manual command, but is no longer the Invaders menu entry.
 
-## Files and performance follow-up
+## Verification
 
-The file selector now creates its client with GrNewWindowEx and zero client
-border, so NanoWM can add its own frame without first unmapping/remapping a
-legacy bordered window. Its fixed layout is no longer resizable. Directory
-loading happens before mapping, and the fixed font is set explicitly.
+Check both full-screen game launches and the return to the desktop, including
+keyboard input, mouse input after return, and repeat launches. Verify an open
+application blocks the handoff and Escape cancels without closing anything.
 
-The native Invaders adapter keeps 4 KB of character grids and has no full
-pixel framebuffer. A host test runs the actual game engine for 100 ticks,
-checks rendered contents against the logical screen, verifies unchanged
-frames produce no text requests, and checks a full redraw after exposure.
-This measures rendering work, not frames per second on the real PS/2.
+Emulation can check the transition and terminal restoration; gameplay speed
+on the original 2 MB PS/2 still requires a hardware test.

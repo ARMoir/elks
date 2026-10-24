@@ -1,0 +1,22 @@
+#!/bin/sh
+# The panel returns a specific status only after Nano-X has shut down.
+export NXCDE_SESSION=1
+while :; do
+    /bin/nxstart
+    desktop_status=$?
+    case "$desktop_status" in
+        41)
+            /bin/stty sane
+            /bin/clear
+            /bin/invaders
+            ;;
+        42)
+            /bin/stty sane
+            /bin/clear
+            /bin/ttypong
+            ;;
+        *) break ;;
+    esac
+    /bin/stty sane
+    /bin/clear
+done

@@ -19,11 +19,11 @@ command into the shell. Existing bare nxterm and legacy command-string use
 remain available. Closing a terminal sends SIGHUP to its child process group;
 clicking the client raises its parent frame and gives it keyboard focus.
 
-After root logs in on `/dev/tty1`, elkfetch runs and nxstart opens automatically
-in the foreground. Exit returns to that login shell without restarting the
+After root logs in on `/dev/tty1`, elkfetch runs and the nxcde session starts
+nxstart in the foreground. Exit returns to that login shell without restarting the
 desktop. Serial logins and PTY shells do not auto-start it. Create `/root/nox`
 to disable startup (`touch /root/nox`), and remove it to enable startup again.
-Manual startup remains `nxstart`. Nothing launches the desktop in rc.sys.
+Manual session startup is `nxcde`; bare `nxstart` runs only the panel. Nothing launches the desktop in rc.sys.
 
 ## Hardware checks still required
 
@@ -33,7 +33,7 @@ Manual startup remains `nxstart`. Nothing launches the desktop in rc.sys.
 4. Move/overlap terminal windows, click to focus, and check repainting.
 5. Close an application using its titlebar and check for orphan processes
    with `ps` after leaving the desktop. Repeat launches to check PTY reuse.
-6. Exit to shell, run nxstart again, then test `/root/nox` across a new login.
+6. Exit to shell, run nxcde again, then test `/root/nox` across a new login.
 7. Check that terminal and serial shells do not start another desktop.
 
 Each terminal also needs a child process and RAM. Start with one text app

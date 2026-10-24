@@ -1,4 +1,4 @@
-name: IBM PS/2 CDE custom Files and native Invaders
+name: IBM PS/2 CDE console game handoff
 
 # GUI demo experiment; verified 830-byte BIOS floppy release unchanged.
 # Builds the exact event commit, including launcher and login profile.
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   cde_textapps_floppy:
-    name: Build PS/2 CDE with restored custom Files
+    name: Build PS/2 CDE with full-screen console games
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
@@ -75,14 +75,15 @@ jobs:
           test -s target/bin/nxeyes
           test -s target/bin/nxstart
           test -s target/bin/nxselect
-          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles; do test -s "target/bin/$app"; done
-          grep -q '"Space Invaders", "/bin/nxinvaders"' ports/nxcde/nxstart.c
-          grep -q '"Pong",.*"/bin/nxterm", "/bin/ttypong"' ports/nxcde/nxstart.c
+          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles nxcde; do test -s "target/bin/$app"; done
+          grep -q '"Invaders (TTY)", "/bin/invaders"' ports/nxcde/nxstart.c
+          grep -q '"Pong (TTY)", "/bin/ttypong"' ports/nxcde/nxstart.c
           grep -q '"Mines",.*"/bin/nxmine"' ports/nxcde/nxstart.c
           cmp ports/nxcde/login.profile target/root/.profile
           grep -q 'CDE_TEXTAPPS' extapps/microwindows/src/demos/nanox/nxterm.c
           grep -q 'program_argv = argv + 1' extapps/microwindows/src/demos/nanox/nxterm.c
-          grep -q '/bin/nxstart' target/root/.profile
+          grep -q '/bin/nxcde' target/root/.profile
+          cmp ports/nxcde/nxcde target/bin/nxcde
           printf 'ELKS source commit: '; git rev-parse HEAD
           printf 'Microwindows source commit: '; git -C extapps/microwindows rev-parse HEAD
           grep -q 'GrRaiseWindow(drawer)' ports/nxcde/nxstart.c
@@ -132,17 +133,18 @@ jobs:
           test -s "$RUNNER_TEMP/nxselect-image"
           test -s "$RUNNER_TEMP/nxeyes-image"
           test -s "$RUNNER_TEMP/nxstart-image"
-          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles; do
+          for app in nxterm kilo fm basic tty nxmine nxinvaders invaders ttypong nxfiles nxcde; do
             mcopy -i image/fd1440.img "::/bin/$app" "$RUNNER_TEMP/$app-image"
             test -s "$RUNNER_TEMP/$app-image"
           done
           cmp ports/nxcde/login.profile "$RUNNER_TEMP/ps2-kstack-profile"
+          cmp ports/nxcde/nxcde "$RUNNER_TEMP/nxcde-image"
           mdir -i image/fd1440.img ::/bin
           sha256sum image/fd1440.img
 
       - name: Upload experimental PS/2 floppy image
         uses: actions/upload-artifact@v4
         with:
-          name: elks-ibm-ps2-cde-custom-files-native-invaders-fd1440-fat
+          name: elks-ibm-ps2-cde-console-games-fd1440-fat
           path: image/fd1440.img
           if-no-files-found: error
