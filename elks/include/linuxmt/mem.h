@@ -13,12 +13,19 @@
 #define MEM_GETJIFFADDR 11
 #define MEM_GETSEGALL   12
 #define MEM_GETDMSG     13
+#define MEM_GETSYSINFO  14
 
 struct mem_usage {              /* all in Kbytes */
     unsigned int main_free;
     unsigned int main_used;
     unsigned int xms_free;
     unsigned int xms_used;
+};
+
+/* Snapshot of boot-detected CPU class and live process count. */
+struct mem_system_info {
+    unsigned int cpu_class;
+    unsigned int processes;
 };
 
 void mm_get_usage(struct mem_usage *mu);
