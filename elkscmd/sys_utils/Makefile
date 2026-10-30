@@ -25,6 +25,7 @@ PRGS = \
 	shutdown \
 	ps \
 	meminfo \
+	elkfetch \
 	who \
 	man \
 	chmem \
@@ -82,6 +83,10 @@ ps: ps.o $(TINYPRINTF)
 
 meminfo: meminfo.o $(TINYPRINTF)
 	$(LD) $(LDFLAGS) -maout-heap=1 -maout-stack=512 -o meminfo meminfo.o $(TINYPRINTF) $(LDLIBS)
+
+
+elkfetch: elkfetch.o
+	$(LD) $(LDFLAGS) -maout-heap=1024 -maout-stack=1024 -o elkfetch elkfetch.o $(LDLIBS)
 
 who: who.o
 	$(LD) $(LDFLAGS) -o who who.o $(LDLIBS)
