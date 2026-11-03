@@ -67,3 +67,119 @@
  }
  
  static SUBDRIVER memplan4_none = {
+--- a/src/demos/nanox/nxtetris.h
++++ b/src/demos/nanox/nxtetris.h
+@@ -72,14 +72,14 @@
+ 					(WELL_WIDTH * BLOCK_SIZE))
+ #define MAIN_WINDOW_HEIGHT ((2 * BORDER_WIDTH) + \
+ 					(WELL_VISIBLE_HEIGHT * BLOCK_SIZE))
+-#define MAIN_WINDOW_BACKGROUND_COLOUR GR_COLOR_NAVYBLUE
++#define MAIN_WINDOW_BACKGROUND_COLOUR GR_COLOR_WHITE
+ 
+ #define SCORE_WINDOW_WIDTH BUTTON_WIDTH
+ #define SCORE_WINDOW_HEIGHT 35
+ #define SCORE_WINDOW_X_POSITION BORDER_WIDTH
+ #define SCORE_WINDOW_Y_POSITION BORDER_WIDTH
+ #define SCORE_WINDOW_BACKGROUND_COLOUR GR_COLOR_BLACK
+-#define SCORE_WINDOW_FOREGROUND_COLOUR GR_COLOR_GREEN
++#define SCORE_WINDOW_FOREGROUND_COLOUR GR_COLOR_WHITE
+ 
+ #define NEXT_SHAPE_WINDOW_SIZE 6
+ #define NEXT_SHAPE_WINDOW_WIDTH (NEXT_SHAPE_WINDOW_SIZE * BLOCK_SIZE)
+@@ -231,7 +231,7 @@
+ 				300, 250, 200, 150, 100, 50};
+ #define MAX_BLOCK_COLOUR 3
+ static const GR_COLOR block_colours[] = {
+-	GR_COLOR_RED, GR_COLOR_GREEN, GR_COLOR_BLUE, GR_COLOR_YELLOW
++	GR_COLOR_WHITE, GR_COLOR_WHITE, GR_COLOR_WHITE, GR_COLOR_WHITE
+ };
+ 
+ /*
+--- a/src/demos/nanox/nxtetris.c
++++ b/src/demos/nanox/nxtetris.c
+@@ -767,7 +767,7 @@
+ 	GrGetScreenInfo(&si);
+ 	if (si.rows <= 200) {		/* CGA */
+ 		WELL_HEIGHT = 18;
+-		WELL_VISIBLE_HEIGHT = 16;
++		WELL_VISIBLE_HEIGHT = 14;
+ 	}
+ 
+ 	state->main_window = GrNewWindowEx(GR_WM_PROPS_APPWINDOW, "Tetris",
+--- a/src/demos/nanox/nxclock.c
++++ b/src/demos/nanox/nxclock.c
+@@ -15,7 +15,7 @@
+ /* If you need a clock bigger than 200x200 you will need to re-write the trig *
+  * to use longs. (Only applies under ELKS I think. */
+ #define CWIDTH		200
+-#define CHEIGHT		200
++#define CHEIGHT		80
+ 
+ /*
+  * Definitions to make it easy to define cursors
+@@ -219,12 +219,12 @@
+ 		midx + (((midx - 8 - midx / 10) * bsin(ls)) >> 8), 
+ 		midy - (((midy - 8 - midy / 10) * bcos(ls)) >> 8), 
+ 		midx + (((midx - 8 - midx / 4) * bsin(ls)) >> 8), 
+-		midy - (((midy - 8 - midx / 4) * bcos(ls)) >> 8));
++		midy - (((midy - 8 - midy / 4) * bcos(ls)) >> 8));
+ 	GrLine(w1, gc2,
+ 		midx + (((midx - 8 - midx / 10) * bsin(sec)) >> 8), 
+ 		midy - (((midy - 8 - midy / 10) * bcos(sec)) >> 8), 
+ 		midx + (((midx - 8 - midx / 4) * bsin(sec)) >> 8), 
+-		midy - (((midy - 8 - midx / 4) * bcos(sec)) >> 8));
++		midy - (((midy - 8 - midy / 4) * bcos(sec)) >> 8));
+ 	if ((lm != minutes) || (ls == minutes)) {
+ 		GrLine(w1, gc1,
+ 			midx + (((midx - 8 - midx / 10) * bsin(lm)) >> 8), 
+--- a/src/demos/nanox/nxmine.c
++++ b/src/demos/nanox/nxmine.c
+@@ -19,7 +19,7 @@
+ 
+ #define	MINSIZE		3		/* minimum size of board */
+ #define MAXSIZE		30		/* maximum size of board */
+-#define SIZE		15		/* default size of playing board */
++#define SIZE		10		/* default size of playing board */
+ #define	MINEPERCENT	15		/* default percentage of mines */
+ #define	SAVEFILE	"nxmine.sav"	/* default save file name */
+ #define MAGIC		649351261	/* magic number in save files */
+@@ -35,7 +35,7 @@
+ #define	STATUSGAP	10		/* mm gap between buttons and status */
+ 
+ #define	BUTTONWIDTH	80		/* width of buttons (pixels) */
+-#define	BUTTONHEIGHT	25		/* height of buttons (pixels) */
++#define	BUTTONHEIGHT	18		/* height of buttons (pixels) */
+ #define	RIGHTSIDE	90		/* pixels to guarantee for right side */
+ #define	BOARDBORDER	2		/* border size around board */
+ #else
+@@ -45,7 +45,7 @@
+ #define	STATUSGAP	35		/* mm gap between buttons and status */
+ 
+ #define	BUTTONWIDTH	80		/* width of buttons (pixels) */
+-#define	BUTTONHEIGHT	25		/* height of buttons (pixels) */
++#define	BUTTONHEIGHT	18		/* height of buttons (pixels) */
+ #define	RIGHTSIDE	150		/* pixels to guarantee for right side */
+ #define	BOARDBORDER	2		/* border size around board */
+ #endif
+@@ -422,7 +422,7 @@
+ 	 * Create the main window which will contain all the others.
+ 	 */
+ 	COLS = si.cols - 50;
+-	ROWS = si.rows - 120;
++	ROWS = si.rows - 36;
+ 	mainwid = GrNewWindowEx(GR_WM_PROPS_APPWINDOW, "Landmine", GR_ROOT_WINDOW_ID,
+ 		0, 0, COLS, ROWS, BLACK);
+  
+@@ -490,9 +490,9 @@
+ 	xorgc = GrNewGC();
+ 	GrSetGCBackground(boardgc, BLUE);
+ 	GrSetGCForeground(cleargc, BLUE);
+-	GrSetGCForeground(redgc, RED);
+-	GrSetGCForeground(greengc, GREEN);
+-	GrSetGCForeground(statgc, GRAY);
++	GrSetGCForeground(redgc, WHITE);
++	GrSetGCForeground(greengc, WHITE);
++	GrSetGCForeground(statgc, WHITE);
+ 	GrSetGCForeground(delaygc, BLACK);
+ 	GrSetGCForeground(blackgc, BLACK);
+ 	GrSetGCMode(delaygc, GR_MODE_XOR);

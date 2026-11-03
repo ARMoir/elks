@@ -52,7 +52,7 @@ static void draw(void)
     for (i = 0; i < 5; ++i)
         if (i == 4 || access(paths[i], F_OK) == 0)
             GrText(window, gc, 12, 40 + 18*i, (void *)names[i], -1, GR_TFASCII);
-    GrText(window, gc, 10, 137, "Keyboard or serial mouse", -1, GR_TFASCII);
+    GrText(window, gc, 10, 137, "Ctrl+A returns to console", -1, GR_TFASCII);
 }
 
 int main(void)

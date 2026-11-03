@@ -77,6 +77,7 @@ The launcher selects the driver's two-color palette so window titles and
 controls retain contrast on the monochrome display.
 The CGA build also replaces VGA-specific window-copy operations with CGA
 pixel operations and preserves the memory-surface format expected by ELKS.
+The apps use contrasting colors and layouts sized for the 200-line display.
 Nano-X, Tetris, Mines, Clock and Eyes are included with a small launcher sized
 for the 200-line display. At the shell, use:
 
@@ -85,9 +86,12 @@ nxcga mouse  serial mouse on the single COM1 port (/dev/ttyS0, 3F8, IRQ4)
 nxcga none   keyboard-only launcher
 ```
 
-In the launcher, keys 1-4 start its four apps. Q or Escape returns to the
-console when the launcher has focus. With a mouse, click its Return to console
-entry or close its window. Close app windows before leaving graphics.
+In the launcher, keys 1-4 start its four apps. Ctrl+A returns to the console
+from any app using Nano-X's built-in exit shortcut. Q or Escape also returns
+when the launcher has focus. With a mouse, click its Return to console entry
+or close its window. Close app windows first to retain their game progress.
+Tetris uses N for a new game, J/K to move, D/F to rotate, Space to drop,
+P/C to pause/continue and Q to close. Mines requires the mouse to play.
 No serial login runs, so the mouse has exclusive use of the port. The
 `com1`/`com2` arguments remain available only as address overrides if your
 card maps its single connector differently; a second connector is not needed.
