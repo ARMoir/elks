@@ -128,7 +128,11 @@ After real-hardware testing showed that `MOUSE_TYPE=pc` produced far less
 jumping than `ms`, the Tandy build now defaults to Mouse Systems' 5-byte
 protocol at 1200 baud. It selects 8 data bits, no parity and one stop bit.
 The alternative Microsoft 3-byte/7-bit protocol is still available:
-`MOUSE_TYPE=ms nxcga tandy mouse`. Mouse choice remains independent of the
+`nxcga tandy mouse ms`. The explicit protocol argument (`pc` or `ms`)
+overrides the environment, particularly useful when an older CF card's
+`/etc/profile` still exports `MOUSE_TYPE=ms`. For that card, use
+`nxcga tandy mouse pc` after copying updated programs. Mouse choice remains
+independent of the
 three video modes, and the earlier Microsoft packet-recovery fix remains.
 
 At 1200 baud, 5-byte movement reports have a roughly 42 ms transmission

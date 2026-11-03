@@ -10,14 +10,15 @@ MOUSE_BATCH=${MOUSE_BATCH:-12}
 for option do
     case "$option" in
         mono|color|tandy) TANDY_MODE=$option ;;
+        pc|ms) MOUSE_TYPE=$option ;;
         mouse|com1) MOUSE_PORT=/dev/ttyS0 ;;
         com2) MOUSE_PORT=/dev/ttyS1 ;;
         none) MOUSE_PORT=none ;;
         -h|--help)
-            echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2]'
+            echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2] [pc|ms] [pc|ms]'
             echo 'Modes: mono=640x200x2, color=320x200x4, tandy=320x200x16 (default)'
             echo 'Mouse: mouse=COM1 (/dev/ttyS0), none=keyboard-only (default)'
-            echo 'Protocol: pc=5-byte Mouse Systems (default), ms=Microsoft via MOUSE_TYPE'
+            echo 'Protocol: pc=5-byte Mouse Systems, ms=Microsoft; argument overrides MOUSE_TYPE'
             echo 'Lag tuning: MOUSE_BATCH=1 disables motion coalescing (default 12)'
             exit 0 ;;
         *) echo "Unknown option: $option" >&2

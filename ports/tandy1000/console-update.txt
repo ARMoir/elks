@@ -20,8 +20,10 @@ the launcher exits; in Tetris Q closes that app first. The session manager
 restores terminal settings, clears the console and waits for child processes.
 This package also includes a serial mouse driver that recovers from lost
 Microsoft packet boundaries and disables 2x acceleration. The serial mouse
-now defaults to the 5-byte Mouse Systems protocol (`pc`) after hardware
-feedback; `MOUSE_TYPE=ms nxcga mouse` remains an available override. Nano-X
+defaults to the 5-byte Mouse Systems protocol (`pc`) after hardware feedback
+on fresh images. Existing cards may still set `MOUSE_TYPE=ms` in their old
+`/etc/profile`; use `nxcga tandy mouse pc` to override it explicitly.
+`nxcga tandy mouse ms` selects Microsoft protocol for comparison. Nano-X
 also groups queued movement updates to reduce cursor redraw lag on the V20,
 without skipping mouse button transitions. `MOUSE_BATCH=1 nxcga mouse`
 disables grouping for comparison; the default is 12. If replacing only
