@@ -14,7 +14,7 @@ static const char *paths[] = { "/bin/nxtetris", "/bin/nxmine", "/bin/nxclock", "
 static GR_WINDOW_ID window;
 static GR_GC_ID gc;
 static pid_t server_pid, client_pid;
-static volatile sig_atomic_t stopping;
+static volatile int stopping;
 
 static void reap(int sig)
 {
@@ -56,8 +56,9 @@ static int run_session(void)
     int have_termios = tcgetattr(0, &saved) == 0;
     int pid, status, tries, result = 1;
     static const char reset[] = "\033[0m\033[?25h\033[H\033[2J";
+    static char managed[] = "NANOX_MANAGED=1";
 
-    if (setenv("NANOX_MANAGED", "1", 1) < 0) return 1;
+    if (putenv(managed) < 0) return 1;
     signal(SIGINT, stop_session);
     signal(SIGTERM, stop_session);
     signal(SIGHUP, stop_session);
