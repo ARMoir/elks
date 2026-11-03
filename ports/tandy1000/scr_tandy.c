@@ -57,6 +57,7 @@ SCREENDEVICE	scrdev = {
  * 09h: 320x200 16-color Tandy 1000.
  */
 static int graphics_mode = 2;
+#define FNTEXT 0x0003
 
 static PSD
 CGA_open(PSD psd)
