@@ -124,8 +124,14 @@ P/C to pause/continue and Q to close. Mines requires the mouse to play.
 No serial login runs, so the mouse has exclusive use of the port. The
 `com1`/`com2` arguments remain available only as address overrides if your
 card maps its single connector differently; a second connector is not needed.
-The driver defaults to the Microsoft serial protocol (`MOUSE_TYPE=ms`). For
-a genuine Mouse Systems protocol device, use `MOUSE_TYPE=pc nxcga mouse`.
+The driver defaults to the Microsoft serial protocol (`MOUSE_TYPE=ms`) at
+1200 baud, 7 data bits, no parity, one stop bit. The Tandy build adds
+synchronization recovery for dropped Microsoft mouse packet bytes and
+reduces cursor acceleration to 1x so a slow V20 redraw does not amplify
+movement. For a genuine Mouse Systems (5-byte) protocol device, use
+`MOUSE_TYPE=pc nxcga tandy mouse`. Mouse choice remains independent of the
+three video modes. If the pointer still jumps, verify the mouse protocol,
+serial cable and COM1 connection before changing video settings.
 A passive USB/PS2-to-serial plug only works with a mouse that supports serial.
 
 The BIOS date/time may need to be set manually on a machine without an RTC.
