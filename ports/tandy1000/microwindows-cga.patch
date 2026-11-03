@@ -1,0 +1,69 @@
+--- a/src/drivers/vgaplan4_cga.c
++++ b/src/drivers/vgaplan4_cga.c
+@@ -1,3 +1,4 @@
++#include <stddef.h>
+ /*
+  * 16 color 4 planes CGA Planar Video Driver for Microwindows
+  *
+--- a/src/drivers/scr_cga.c
++++ b/src/drivers/scr_cga.c
+@@ -76,7 +76,7 @@
+ 	psd->pixtype = MWPF_PALETTE;
+ 	psd->flags = PSF_SCREEN;
+ 	if (MONOMODE) {
+-		psd->bpp = 1;
++		psd->bpp = 4; /* ELKS memory surfaces use packed 4bpp storage. */
+ 		psd->ncolors = 2;
+ 	} else {
+ 		psd->bpp = 4;           /* color applications */
+--- a/src/drivers/vgaplan4_mem.c
++++ b/src/drivers/vgaplan4_mem.c
+@@ -353,27 +353,29 @@
+ 	DRAWOFF;
+ }
+ 
++/*
++ * CGA has no VGA plane registers and uses alternating scanline banks.
++ * Use each surface's pixel accessors, including for packed memory surfaces.
++ * Traverse backwards when needed so overlapping copies retain their source.
++ */
+ void
+ vga_blit(PSD dstpsd, MWCOORD dstx, MWCOORD dsty, MWCOORD w, MWCOORD h,
+-	PSD srcpsd, MWCOORD srcx, MWCOORD srcy, int op)
+-{
+-	MWBOOL	srcvga, dstvga;
+-
+-	/* decide which blit algorithm to use*/
+-	srcvga = srcpsd->flags & PSF_SCREEN;
+-	dstvga = dstpsd->flags & PSF_SCREEN;
+-
+-	if(srcvga) {
+-		if(dstvga)
+-			vga_to_vga_blit(dstpsd, dstx, dsty, w, h, srcpsd, srcx, srcy, op);
+-		else
+-			vga_to_mempl4_blit(dstpsd, dstx, dsty, w, h, srcpsd, srcx, srcy, op);
+-	} else {
+-		if(dstvga)
+-			mempl4_to_vga_blit(dstpsd, dstx, dsty, w, h, srcpsd, srcx, srcy, op);
+-		else
+-			mempl4_to_mempl4_blit(dstpsd, dstx, dsty, w, h, srcpsd, srcx, srcy, op);
+-	}
++    PSD srcpsd, MWCOORD srcx, MWCOORD srcy, int op)
++{
++    MWCOORD x, y, firstx = 0, firsty = 0, stepx = 1, stepy = 1;
++    int oldmode;
++
++    if (w <= 0 || h <= 0) return;
++    if (dstpsd == srcpsd) {
++        if (dstx > srcx) { firstx = w - 1; stepx = -1; }
++        if (dsty > srcy) { firsty = h - 1; stepy = -1; }
++    }
++    oldmode = GdSetMode(op == MWROP_XOR ? MWROP_XOR : MWROP_COPY);
++    for (y = firsty; y >= 0 && y < h; y += stepy)
++        for (x = firstx; x >= 0 && x < w; x += stepx)
++            dstpsd->DrawPixel(dstpsd, dstx + x, dsty + y,
++                srcpsd->ReadPixel(srcpsd, srcx + x, srcy + y));
++    GdSetMode(oldmode);
+ }
+ 
+ static SUBDRIVER memplan4_none = {

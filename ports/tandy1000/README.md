@@ -75,6 +75,8 @@ implement Tandy's native 16-color graphics, and does not start the VGA/CDE
 desktop from the PS/2 image. Graphics stay opt-in for the first hardware test.
 The launcher selects the driver's two-color palette so window titles and
 controls retain contrast on the monochrome display.
+The CGA build also replaces VGA-specific window-copy operations with CGA
+pixel operations and preserves the memory-surface format expected by ELKS.
 Nano-X, Tetris, Mines, Clock and Eyes are included with a small launcher sized
 for the 200-line display. At the shell, use:
 
