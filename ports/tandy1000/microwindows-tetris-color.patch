@@ -76,30 +76,3 @@
  	if (si.rows <= 200) {		/* CGA */
  		WELL_HEIGHT = 18;
  		WELL_VISIBLE_HEIGHT = 14;
---- a/src/engine/devpal2.c
-+++ b/src/engine/devpal2.c
-@@ -11,17 +11,13 @@
-  * That is, white is pixel value 0, while black is 3.
-  */
- const MWPALENTRY mwstdpal2[4] = {
-+/* Tandy build selects CGA mode 04h, palette 1 (cyan/magenta/white).
-+	 * Match the actual 2bpp hardware indices, not upstream grayscale.
-+	 */
-+	RGBDEF( 0,   0,   0   ),  /* background: black */
-+	RGBDEF( 0,   170, 170 ),  /* pixel 01: cyan */
-+	RGBDEF( 170, 0,   170 ),  /* pixel 10: magenta */
-+	RGBDEF( 170, 170, 170 )   /* pixel 11: light gray/white */
--#if INVERT2BPP
--	RGBDEF( 255, 255, 255 ),	/* white*/
--	RGBDEF( 192, 192, 192 ),	/* ltgray*/
--	RGBDEF( 128, 128, 128 ),	/* gray*/
--	RGBDEF( 0  , 0  , 0   )		/* black*/
--#else
--	RGBDEF( 0  , 0  , 0   ),	/* black*/
--	RGBDEF( 128, 128, 128 ),	/* gray*/
--	RGBDEF( 192, 192, 192 ),	/* ltgray*/
--	RGBDEF( 255, 255, 255 )		/* white*/
--#endif
- };
- 
- 
