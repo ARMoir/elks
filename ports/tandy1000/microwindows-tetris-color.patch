@@ -1,0 +1,105 @@
+--- a/src/demos/nanox/nxtetris.h
++++ b/src/demos/nanox/nxtetris.h
+@@ -72,14 +72,14 @@
+ 					(WELL_WIDTH * BLOCK_SIZE))
+ #define MAIN_WINDOW_HEIGHT ((2 * BORDER_WIDTH) + \
+ 					(WELL_VISIBLE_HEIGHT * BLOCK_SIZE))
++#define MAIN_WINDOW_BACKGROUND_COLOUR tetris_background_colour
+-#define MAIN_WINDOW_BACKGROUND_COLOUR GR_COLOR_WHITE
+ 
+ #define SCORE_WINDOW_WIDTH BUTTON_WIDTH
+ #define SCORE_WINDOW_HEIGHT 35
+ #define SCORE_WINDOW_X_POSITION BORDER_WIDTH
+ #define SCORE_WINDOW_Y_POSITION BORDER_WIDTH
+ #define SCORE_WINDOW_BACKGROUND_COLOUR GR_COLOR_BLACK
++#define SCORE_WINDOW_FOREGROUND_COLOUR tetris_score_colour
+-#define SCORE_WINDOW_FOREGROUND_COLOUR GR_COLOR_WHITE
+ 
+ #define NEXT_SHAPE_WINDOW_SIZE 6
+ #define NEXT_SHAPE_WINDOW_WIDTH (NEXT_SHAPE_WINDOW_SIZE * BLOCK_SIZE)
+@@ -229,10 +229,14 @@
+ #define LEVELS 12
+ static const int delays[] = {600, 550, 500, 450, 400, 350,
+ 				300, 250, 200, 150, 100, 50};
++/* Distinct Tandy colors, one per tetromino type. */
++#define MAX_BLOCK_COLOUR 6
++static GR_COLOR block_colours[] = {
++	GR_COLOR_CYAN, GR_COLOR_BLUE, GR_COLOR_YELLOW, GR_COLOR_GREEN,
++	GR_COLOR_MAGENTA, GR_COLOR_RED, GR_COLOR_WHITE
+-#define MAX_BLOCK_COLOUR 3
+-static const GR_COLOR block_colours[] = {
+-	GR_COLOR_WHITE, GR_COLOR_WHITE, GR_COLOR_WHITE, GR_COLOR_WHITE
+ };
++static GR_COLOR tetris_background_colour = GR_COLOR_NAVYBLUE;
++static GR_COLOR tetris_score_colour = GR_COLOR_GREEN;
+ 
+ /*
+  * This isn't the most space efficient way of storing the shape patterns, but
+--- a/src/demos/nanox/nxtetris.c
++++ b/src/demos/nanox/nxtetris.c
+@@ -740,7 +740,8 @@
+ 			shape_sizes[state->next_shape.type][state->next_shape.orientation][1] - 1;
+ 	state->next_shape.type = random() % MAXSHAPES;
+ 	state->next_shape.orientation = random() % MAXORIENTATIONS;
++	/* The same shape keeps the same color, including the preview. */
++	state->next_shape.colour = block_colours[state->next_shape.type];
+-	state->next_shape.colour = block_colours[random() % (MAX_BLOCK_COLOUR + 1)];
+ }
+ 
+ void new_game(nstate *state)
+@@ -759,12 +760,28 @@
+ void init_game(nstate *state)
+ {
+ 	GR_SCREEN_INFO si;
++	int i;
+ 
+ 	if(GrOpen() < 0) {
+ 		GrError("Couldn't connect to Nano-X server\n");
+ 		exit(1);
+ 	}
+ 	GrGetScreenInfo(&si);
++	/* Use all seven tetromino colors on the Tandy 16-color display.
++	 * Keep CGA and monochrome usable on the same CF image.
++	 */
++	if (si.ncolors <= 2) {
++		tetris_background_colour = GR_COLOR_WHITE;
++		tetris_score_colour = GR_COLOR_WHITE;
++		for (i = 0; i <= MAX_BLOCK_COLOUR; ++i)
++			block_colours[i] = GR_COLOR_WHITE;
++	} else if (si.ncolors <= 4) {
++		tetris_background_colour = GR_COLOR_BLACK;
++		tetris_score_colour = GR_COLOR_WHITE;
++		for (i = 0; i <= MAX_BLOCK_COLOUR; ++i)
++			block_colours[i] = (i % 3 == 0) ? GR_COLOR_CYAN :
++				(i % 3 == 1) ? GR_COLOR_MAGENTA : GR_COLOR_WHITE;
++	}
+ 	if (si.rows <= 200) {		/* CGA */
+ 		WELL_HEIGHT = 18;
+ 		WELL_VISIBLE_HEIGHT = 14;
+--- a/src/engine/devpal2.c
++++ b/src/engine/devpal2.c
+@@ -11,17 +11,13 @@
+  * That is, white is pixel value 0, while black is 3.
+  */
+ const MWPALENTRY mwstdpal2[4] = {
++/* Tandy build selects CGA mode 04h, palette 1 (cyan/magenta/white).
++	 * Match the actual 2bpp hardware indices, not upstream grayscale.
++	 */
++	RGBDEF( 0,   0,   0   ),  /* background: black */
++	RGBDEF( 0,   170, 170 ),  /* pixel 01: cyan */
++	RGBDEF( 170, 0,   170 ),  /* pixel 10: magenta */
++	RGBDEF( 170, 170, 170 )   /* pixel 11: light gray/white */
+-#if INVERT2BPP
+-	RGBDEF( 255, 255, 255 ),	/* white*/
+-	RGBDEF( 192, 192, 192 ),	/* ltgray*/
+-	RGBDEF( 128, 128, 128 ),	/* gray*/
+-	RGBDEF( 0  , 0  , 0   )		/* black*/
+-#else
+-	RGBDEF( 0  , 0  , 0   ),	/* black*/
+-	RGBDEF( 128, 128, 128 ),	/* gray*/
+-	RGBDEF( 192, 192, 192 ),	/* ltgray*/
+-	RGBDEF( 255, 255, 255 )		/* white*/
+-#endif
+ };
+ 
+ 
