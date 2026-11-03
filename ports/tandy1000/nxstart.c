@@ -16,10 +16,26 @@ static GR_GC_ID gc;
 static pid_t server_pid, client_pid;
 static volatile int stopping;
 
+/* Defer waitpid until the ordinary event loop. In particular, never reap a
+ * child from the signal handler while Nano-X has a client socket operation
+ * in progress. A child exit is not a request to terminate the desktop.
+ */
+static volatile int reap_pending;
+
 static void reap(int sig)
 {
+    (void)sig;
+    reap_pending = 1;
     signal(SIGCHLD, reap);
-    while (waitpid(-1, NULL, WNOHANG) > 0) ;
+}
+
+static void reap_children(void)
+{
+    if (reap_pending) {
+        reap_pending = 0;
+        while (waitpid(-1, NULL, WNOHANG) > 0)
+            ;
+    }
 }
 
 /* Also runs when the client library exits after losing its server connection. */
@@ -68,7 +84,11 @@ static int run_session(void)
         signal(SIGINT, SIG_DFL);
         signal(SIGTERM, SIG_DFL);
         signal(SIGHUP, SIG_DFL);
-        execl("/bin/nano-x", "nano-x", (char *)NULL);
+        /* A game closing must not cause the Nano-X server to shut down,
+         * even if it temporarily becomes the last connected client. The
+         * outer session supervisor still terminates this server on exit.
+         */
+        execl("/bin/nano-x", "nano-x", "-p", (char *)NULL);
         _exit(127);
     }
     if (server_pid < 0) {
@@ -158,6 +178,7 @@ int main(int argc, char **argv)
     GrMapWindow(window);
     GrSetFocus(window);
     for (;;) {
+        reap_children();
         GrGetNextEvent(&event);
         if (event.type == GR_EVENT_TYPE_EXPOSURE) draw();
         else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) quit(0);
