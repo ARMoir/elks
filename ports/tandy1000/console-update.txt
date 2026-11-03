@@ -18,4 +18,7 @@ The mouse option always uses the single COM1 serial port.
 Ctrl+A should close graphics and return to a visible # prompt. Q in
 the launcher exits; in Tetris Q closes that app first. The session manager
 restores terminal settings, clears the console and waits for child processes.
+This package also includes a serial mouse driver that recovers from lost
+Microsoft packet boundaries and disables 2x acceleration. The IBM/Tandy
+serial mouse protocol and cable still need verification on real hardware.
 Video color modes, shell return, and physical serial mouse need hardware tests.
