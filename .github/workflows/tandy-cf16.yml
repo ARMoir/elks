@@ -27,15 +27,41 @@ jobs:
           sudo apt-get install -y --fix-missing texinfo libncurses5-dev libelf-dev ncompress nasm
       - name: Cache cross compiler
         id: toolchain
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: cross
           key: cross-${{ hashFiles('tools/*') }}-${{ runner.os }}
       - name: Build cross compiler if necessary
         if: steps.toolchain.outputs.cache-hit != 'true'
         run: tools/build.sh
+      - name: Prune and save the newly built compiler before building the image
+        if: steps.toolchain.outputs.cache-hit != 'true'
+        run: tools/prune.sh
+      - name: Save compiler cache
+        if: steps.toolchain.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: cross
+          key: cross-${{ hashFiles('tools/*') }}-${{ runner.os }}
       - name: Build and verify the CF disk
-        run: bash ports/tandy1000/build.sh
+        shell: bash
+        run: |
+          set -o pipefail
+          bash ports/tandy1000/build.sh 2>&1 | tee tandy-build.log
+      - name: Collect image build diagnostics
+        if: always()
+        run: |
+          if test -f tandy-build.log; then
+            tail -n 350 tandy-build.log > image/tandy-build-tail.log
+          else
+            echo 'Image build did not start.' > image/tandy-build-tail.log
+          fi
+      - name: Upload image build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tandy-cf16-build-log
+          path: image/tandy-build-tail.log
       - name: Upload CF image, checksum and instructions
         uses: actions/upload-artifact@v4
         with:
