@@ -20,6 +20,8 @@ git -C "$mw" checkout --detach 969eae602a8a5a022ea978da4016f97409d4421e
 git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-cga.patch"
 # Restore seven distinct Tetris colors in Tandy mode, retain CGA/mono fallback.
 git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-tetris-color.patch"
+# Match Nano-X's 4-color lookup palette to actual CGA palette 1 hardware.
+cp ports/tandy1000/devpal2_tandy.c "$mw/src/engine/devpal2.c"
 # Resync 3-byte serial mouse packets after dropped bytes, and avoid V20 cursor acceleration.
 git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-mouse.patch"
 # Drain queued relative moves before painting the cursor; preserve button edges.
