@@ -1,11 +1,11 @@
 #!/bin/sh
 # Microsoft-compatible serial mouse by default. No serial login runs here.
 case "$1" in
-    com1) MOUSE_PORT=/dev/ttyS0 ;;
+    mouse|com1) MOUSE_PORT=/dev/ttyS0 ;;
     com2) MOUSE_PORT=/dev/ttyS1 ;;
     none) MOUSE_PORT=none ;;
     '') MOUSE_PORT=${MOUSE_PORT:-none} ;;
-    *) echo 'Usage: nxcga [com1|com2|none]'; exit 1 ;;
+    *) echo 'Usage: nxcga [mouse|none|com1|com2]'; exit 1 ;;
 esac
 MOUSE_TYPE=${MOUSE_TYPE:-ms}
 export MOUSE_TYPE MOUSE_PORT

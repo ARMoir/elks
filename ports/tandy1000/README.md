@@ -2,7 +2,7 @@
 
 This is a separate, experimental CompactFlash build. It does not replace the
 IBM PS/2 floppy image. The target is the Tandy 1000 EX with its NEC V20 CPU,
-TGA display and rkrenicki Tandy EX/HX 3-in-1 Expansion Board V2.
+TGA display and the rkrenicki Tandy EX/HX 3-in-1 expansion card (single serial port).
 
 ## Disk and startup
 
@@ -20,9 +20,10 @@ TGA display and rkrenicki Tandy EX/HX 3-in-1 Expansion Board V2.
 - Console startup, one console login, reduced cache/heap settings, no HMA/XMS,
   no network-card probing, no direct floppy DMA driver and no AT RTC utility.
 
-The 3-in-1 V2 README specifies 640 KB of base system RAM and 96 KB of upper
-memory, serial ports at 3F8/IRQ4 and 2F8/IRQ3, CF I/O at 300, and BIOS ROM at
-C0000-C7FFF. The extra RAM at C8000-DFFFF is optional: after a successful first
+The linked V2 reference documents 640 KB of base system RAM and 96 KB of upper
+memory, CF I/O at 300 and BIOS ROM at C0000-C7FFF. This image targets the
+single-serial-port variant, using COM1 (3F8/IRQ4) for the mouse. It does not
+require a second serial port. The extra RAM at C8000-DFFFF is optional: after a successful first
 boot, uncomment `umb=0xC800:0x1800` in `/bootopts` to make that 96 KiB available
 to ELKS. Do not include the C0000-C7FFF ROM range.
 
@@ -75,17 +76,18 @@ Nano-X, Tetris, Mines, Clock and Eyes are included with a small launcher sized
 for the 200-line display. At the shell, use:
 
 ```text
-nxcga com1   Microsoft-compatible serial mouse on /dev/ttyS0 (3F8, IRQ4)
-nxcga com2   Microsoft-compatible serial mouse on /dev/ttyS1 (2F8, IRQ3)
+nxcga mouse  serial mouse on the single COM1 port (/dev/ttyS0, 3F8, IRQ4)
 nxcga none   keyboard-only launcher
 ```
 
 In the launcher, keys 1-4 start its four apps. Q or Escape returns to the
 console when the launcher has focus. With a mouse, click its Return to console
 entry or close its window. Close app windows before leaving graphics.
-Neither serial port runs a login, so the mouse can claim the selected port.
+No serial login runs, so the mouse has exclusive use of the port. The
+`com1`/`com2` arguments remain available only as address overrides if your
+card maps its single connector differently; a second connector is not needed.
 The driver defaults to the Microsoft serial protocol (`MOUSE_TYPE=ms`). For
-a genuine Mouse Systems protocol device, use `MOUSE_TYPE=pc nxcga com1`.
+a genuine Mouse Systems protocol device, use `MOUSE_TYPE=pc nxcga mouse`.
 A passive USB/PS2-to-serial plug only works with a mouse that supports serial.
 
 The BIOS date/time may need to be set manually on a machine without an RTC.
