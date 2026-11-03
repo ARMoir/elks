@@ -5,7 +5,7 @@ partition layout, configuration and unrelated files.
 
 With ELKS shut down and the CF card in your PC's reader, copy all three files
 from the ZIP's bin folder into the CF card's BIN folder:
-  NXSTART, NANO-X, NXCGA
+  NXSTART, NANO-X, NXCGA, NXTETRIS
 Overwrite the old versions. Copy the files as-is; do not decompress them.
 Safely eject the card and boot the Tandy again.
 
@@ -28,6 +28,11 @@ also groups queued movement updates to reduce cursor redraw lag on the V20,
 without skipping mouse button transitions. `MOUSE_BATCH=1 nxcga mouse`
 disables grouping for comparison; the default is 12. If replacing only
 NANO-X/NXSTART/NXCGA without rewriting the CF card, these defaults still apply.
+Tetris now uses seven distinct tetromino colors in 320x200x16 Tandy mode,
+instead of the all-white CGA fallback. Tetris also adapts to 4-color
+and 2-color graphics, and the 4-color CGA palette is corrected. The
+NXTETRIS executable must be replaced along with NANO-X for this update.
+
 Nano-X now uses persistent server mode and the launcher reaps child processes
 from its event loop, not from the SIGCHLD handler, so closing an individual
 app should return to the launcher instead of ending the entire GUI. Closing

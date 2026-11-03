@@ -80,7 +80,7 @@ CGA_open(PSD psd)
         int10(0x0009, 0);      /* Tandy 320x200, 16 colors, 32 KiB */
     else if (graphics_mode == 1) {
         int10(0x0004, 0);      /* CGA 320x200, 4 colors */
-        int10(0x0b00, 0x0101);/* CGA cyan/magenta/white palette */
+        int10(0x0b01, 0x0001);/* BIOS AH=0Bh AL=01h: select CGA palette 1 */
     } else
         int10(0x0006, 0);      /* CGA 640x200, 2 colors */
 

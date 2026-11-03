@@ -124,7 +124,13 @@ should remain visible after an application exits; choosing Return to console
 or pressing Ctrl+A intentionally ends the session. These changes need
 confirmation on the real Tandy.
 Tetris uses N for a new game, J/K to move, D/F to rotate, Space to drop,
-P/C to pause/continue and Q to close. Mines requires the mouse to play.
+P/C to pause/continue and Q to close. Its seven tetromino shapes now have
+distinct cyan, blue, yellow, green, magenta, red and white colors in native
+16-color Tandy mode. The earlier CGA-only build forced every Tetris piece
+to white; this is no longer done in 16-color mode. Standard CGA 320x200
+mode displays three foreground colors (cyan, magenta and light gray),
+while the 640x200 monochrome fallback still uses white pieces. The
+main window and score colors also adapt to the current video mode. Mines requires the mouse to play.
 No serial login runs, so the mouse has exclusive use of the port. The
 `com1`/`com2` arguments remain available only as address overrides if your
 card maps its single connector differently; a second connector is not needed.
@@ -166,7 +172,9 @@ The image builder checks its size, MBR signatures and partition bounds, FAT16
 cluster count, identical FAT copies and BPB offsets. The build extracts the
 actual image's applications, boot options and login profile to verify them.
 Emulation can check boot, different BIOS geometries, console apps and CGA
-graphics. CF boot, CGA Tetris and usable game speed have been confirmed on the
+graphics. The build verifies that color Tetris sources and its executable
+are present in the image. Actual seven-color output still needs visual
+confirmation on Tandy hardware. CF boot, CGA Tetris and usable game speed have been confirmed on the
 real V20-equipped Tandy. The revised Ctrl+A return to the shell needs retesting
 there; physical serial-mouse movement is confirmed in 5-byte `pc` mode but
 lag remains to be retested with motion coalescing. The new 4-color and
