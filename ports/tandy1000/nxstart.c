@@ -1,0 +1,95 @@
+/* Small keyboard/serial-mouse launcher for 640x200 CGA-compatible displays. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include "nano-X.h"
+
+static const char *names[] = { "1  Tetris", "2  Mines", "3  Clock", "4  Eyes", "Q  Return to console" };
+static const char *paths[] = { "/bin/nxtetris", "/bin/nxmine", "/bin/nxclock", "/bin/nxeyes" };
+static GR_WINDOW_ID window;
+static GR_GC_ID gc;
+
+static void reap(int sig)
+{
+    signal(SIGCHLD, reap);
+    while (waitpid(-1, NULL, WNOHANG) > 0) ;
+}
+
+static void quit(int sig)
+{
+    int pid;
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGCHLD, SIG_DFL);
+    GrClose();
+    kill(-getpid(), SIGTERM);
+    do { pid = waitpid(-1, NULL, 0); }
+    while (pid > 0 || (pid < 0 && errno == EINTR));
+    exit(0);
+}
+
+static void launch(int app)
+{
+    if (app == 4) quit(0);
+    if (app < 0 || app > 3 || access(paths[app], F_OK)) return;
+    if (vfork() == 0) {
+        signal(SIGTERM, SIG_DFL);
+        signal(SIGINT, SIG_DFL);
+        signal(SIGHUP, SIG_DFL);
+        signal(SIGCHLD, SIG_DFL);
+        execl(paths[app], paths[app], (char *)NULL);
+        _exit(127);
+    }
+}
+
+static void draw(void)
+{
+    int i;
+    GrText(window, gc, 10, 17, "Select an application", -1, GR_TFASCII);
+    for (i = 0; i < 5; ++i)
+        if (i == 4 || access(paths[i], F_OK) == 0)
+            GrText(window, gc, 12, 40 + 18*i, (void *)names[i], -1, GR_TFASCII);
+    GrText(window, gc, 10, 137, "Keyboard or serial mouse", -1, GR_TFASCII);
+}
+
+int main(void)
+{
+    GR_SCREEN_INFO screen;
+    GR_EVENT event;
+    GR_WINDOW_INFO info;
+    setsid();
+    signal(SIGCHLD, reap);
+    signal(SIGTERM, quit);
+    if (GrOpen() < 0) return 1;
+    GrGetScreenInfo(&screen);
+    window = GrNewWindowEx(GR_WM_PROPS_APPWINDOW | GR_WM_PROPS_NORESIZE,
+        "ELKS CGA Apps", GR_ROOT_WINDOW_ID, (screen.cols - 250)/2, 12,
+        250, 148, GR_RGB(255,255,255));
+    gc = GrNewGC();
+    GrSetGCFont(gc, GrCreateFontEx(GR_FONT_SYSTEM_FIXED, 0, 0, NULL));
+    GrSetGCForeground(gc, GR_RGB(0,0,0));
+    GrSetGCUseBackground(gc, GR_FALSE);
+    GrSelectEvents(window, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_KEY_DOWN |
+        GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_CLOSE_REQ);
+    GrMapWindow(window);
+    GrSetFocus(window);
+    for (;;) {
+        GrGetNextEvent(&event);
+        if (event.type == GR_EVENT_TYPE_EXPOSURE) draw();
+        else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) quit(0);
+        else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
+            int key = event.keystroke.ch;
+            if (key == 'q' || key == 'Q' || key == MWKEY_ESCAPE) quit(0);
+            if (key >= '1' && key <= '4') launch(key - '1');
+        } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
+            GrGetWindowInfo(window, &info);
+            GrRaiseWindow(info.parent != GR_ROOT_WINDOW_ID ? info.parent : window);
+            GrSetFocus(window);
+            if (event.button.y >= 25 && event.button.y < 115)
+                launch((event.button.y - 25)/18);
+        }
+    }
+}

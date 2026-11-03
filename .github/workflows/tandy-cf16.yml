@@ -1,0 +1,47 @@
+name: Tandy 1000 EX V20 XTIDE 16 MiB CF
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [tandy1000ex-cf16]
+    paths:
+      - tandy1000ex-cf16.config
+      - ports/tandy1000/**
+      - .github/workflows/tandy-cf16.yml
+
+permissions:
+  contents: read
+
+jobs:
+  tandy_cf16:
+    name: Build Tandy V20 CF image with CGA and serial mouse support
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Install ELKS prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing texinfo libncurses5-dev libelf-dev ncompress nasm
+      - name: Cache cross compiler
+        id: toolchain
+        uses: actions/cache@v4
+        with:
+          path: cross
+          key: cross-${{ hashFiles('tools/*') }}-${{ runner.os }}
+      - name: Build cross compiler if necessary
+        if: steps.toolchain.outputs.cache-hit != 'true'
+        run: tools/build.sh
+      - name: Build and verify the CF disk
+        run: bash ports/tandy1000/build.sh
+      - name: Upload CF image, checksum and instructions
+        uses: actions/upload-artifact@v4
+        with:
+          name: elks-tandy1000ex-v20-xtide-cf16
+          path: |
+            image/elks-tandy1000ex-cf16.img
+            image/elks-tandy1000ex-cf16.sha256
+            image/elks-tandy1000ex-cf16-README.txt
+          if-no-files-found: error

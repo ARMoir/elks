@@ -1,0 +1,7 @@
+## Tandy 1000 EX, V20, 3-in-1 V2 / XTIDE. Maximum 1023 bytes.
+root=hda1
+dmesg=1
+task=12 buf=16 cache=4 file=40 inode=56 heap=24000
+# The card supplies 96 KiB here; enable after confirming the first boot.
+# XTIDE ROM is C0000-C7FFF and must NOT be included.
+#umb=0xC800:0x1800
