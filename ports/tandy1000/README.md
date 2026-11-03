@@ -124,14 +124,24 @@ P/C to pause/continue and Q to close. Mines requires the mouse to play.
 No serial login runs, so the mouse has exclusive use of the port. The
 `com1`/`com2` arguments remain available only as address overrides if your
 card maps its single connector differently; a second connector is not needed.
-The driver defaults to the Microsoft serial protocol (`MOUSE_TYPE=ms`) at
-1200 baud, 7 data bits, no parity, one stop bit. The Tandy build adds
-synchronization recovery for dropped Microsoft mouse packet bytes and
-reduces cursor acceleration to 1x so a slow V20 redraw does not amplify
-movement. For a genuine Mouse Systems (5-byte) protocol device, use
-`MOUSE_TYPE=pc nxcga tandy mouse`. Mouse choice remains independent of the
-three video modes. If the pointer still jumps, verify the mouse protocol,
-serial cable and COM1 connection before changing video settings.
+After real-hardware testing showed that `MOUSE_TYPE=pc` produced far less
+jumping than `ms`, the Tandy build now defaults to Mouse Systems' 5-byte
+protocol at 1200 baud. It selects 8 data bits, no parity and one stop bit.
+The alternative Microsoft 3-byte/7-bit protocol is still available:
+`MOUSE_TYPE=ms nxcga tandy mouse`. Mouse choice remains independent of the
+three video modes, and the earlier Microsoft packet-recovery fix remains.
+
+At 1200 baud, 5-byte movement reports have a roughly 42 ms transmission
+floor. The Tandy Nano-X server now coalesces up to 12 pending mouse movement
+reports before moving the cursor, reducing redraw backlog on a slow V20.
+**Button press and release transitions are delivered separately.** For
+comparison and troubleshooting, `MOUSE_BATCH=1 nxcga tandy mouse` restores
+one screen update per received movement report. The default is 12 and the
+range is 1 to 32. Acceleration stays at 1x to avoid magnifying jumps.
+
+This is an experimental performance fix; real-hardware confirmation is still
+needed. If lag remains, compare `MOUSE_BATCH=1`, `6`, and `12` using the same
+screen and mouse, and check serial connection/CPU load.
 A passive USB/PS2-to-serial plug only works with a mouse that supports serial.
 
 The BIOS date/time may need to be set manually on a machine without an RTC.
@@ -150,5 +160,6 @@ actual image's applications, boot options and login profile to verify them.
 Emulation can check boot, different BIOS geometries, console apps and CGA
 graphics. CF boot, CGA Tetris and usable game speed have been confirmed on the
 real V20-equipped Tandy. The revised Ctrl+A return to the shell needs retesting
-there; physical serial-mouse operation and the new 4-color and 16-color
-video modes are also still unverified.
+there; physical serial-mouse movement is confirmed in 5-byte `pc` mode but
+lag remains to be retested with motion coalescing. The new 4-color and
+16-color video modes are still awaiting real-hardware verification.

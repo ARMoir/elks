@@ -12,18 +12,18 @@ check() {
         exit 1
     fi
 }
-check 'mode=tandy mouse=none protocol=ms'
-check 'mode=tandy mouse=none protocol=ms' none
-check 'mode=tandy mouse=/dev/ttyS0 protocol=ms' mouse
-check 'mode=tandy mouse=/dev/ttyS0 protocol=ms' tandy mouse
-check 'mode=tandy mouse=/dev/ttyS0 protocol=ms' mouse tandy
-check 'mode=tandy mouse=none protocol=ms' tandy none
-check 'mode=color mouse=none protocol=ms' color none
-check 'mode=color mouse=/dev/ttyS0 protocol=ms' color mouse
-check 'mode=mono mouse=none protocol=ms' mono none
-check 'mode=mono mouse=/dev/ttyS0 protocol=ms' mono mouse
-check 'mode=color mouse=/dev/ttyS1 protocol=ms' com2 color
-MOUSE_TYPE=pc check 'mode=tandy mouse=/dev/ttyS0 protocol=pc' tandy mouse
+check 'mode=tandy mouse=none protocol=pc'
+check 'mode=tandy mouse=none protocol=pc' none
+check 'mode=tandy mouse=/dev/ttyS0 protocol=pc' mouse
+check 'mode=tandy mouse=/dev/ttyS0 protocol=pc' tandy mouse
+check 'mode=tandy mouse=/dev/ttyS0 protocol=pc' mouse tandy
+check 'mode=tandy mouse=none protocol=pc' tandy none
+check 'mode=color mouse=none protocol=pc' color none
+check 'mode=color mouse=/dev/ttyS0 protocol=pc' color mouse
+check 'mode=mono mouse=none protocol=pc' mono none
+check 'mode=mono mouse=/dev/ttyS0 protocol=pc' mono mouse
+check 'mode=color mouse=/dev/ttyS1 protocol=pc' com2 color
+MOUSE_TYPE=ms check 'mode=tandy mouse=/dev/ttyS0 protocol=ms' tandy mouse
 if NXCGA_PRINT_CONFIG=1 /bin/sh "$launcher" invalid-option >/dev/null 2>&1; then
     echo 'Invalid graphics or pointing-device option accepted' >&2
     exit 1

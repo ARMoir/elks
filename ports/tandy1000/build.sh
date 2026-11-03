@@ -20,6 +20,8 @@ git -C "$mw" checkout --detach 969eae602a8a5a022ea978da4016f97409d4421e
 git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-cga.patch"
 # Resync 3-byte serial mouse packets after dropped bytes, and avoid V20 cursor acceleration.
 git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-mouse.patch"
+# Drain queued relative moves before painting the cursor; preserve button edges.
+git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-mouse-batch.patch"
 # Native Tandy 16-color and standard 4-color/mono graphics share one Nano-X build.
 # The graphics mode is selected at runtime, independently of the serial mouse.
 cp ports/tandy1000/scr_tandy.c "$mw/src/drivers/scr_cga.c"
@@ -41,7 +43,7 @@ template="$TOPDIR/image/tandy-template"
 cp -a elkscmd/rootfs_template "$template"
 cp ports/tandy1000/bootopts "$template/bootopts"
 cp ports/tandy1000/login.profile "$template/root/.profile"
-printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE=ms\nexport MOUSE_PORT=none\n' >> "$template/etc/profile"
+printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE=pc\nexport MOUSE_PORT=none\n' >> "$template/etc/profile"
 # The EX has no AT CMOS RTC. Its serial ports are reserved for mouse/terminal use.
 sed -i '/^clock -s /d' "$template/etc/rc.sys"
 printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"

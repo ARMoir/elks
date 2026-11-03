@@ -3,7 +3,9 @@
 # Examples: nxcga tandy mouse | nxcga color none | nxcga mono mouse
 TANDY_MODE=${TANDY_MODE:-tandy}
 MOUSE_PORT=${MOUSE_PORT:-none}
-MOUSE_TYPE=${MOUSE_TYPE:-ms}
+MOUSE_TYPE=${MOUSE_TYPE:-pc}
+# The V20 benefits from grouping queued mouse motion before drawing.
+MOUSE_BATCH=${MOUSE_BATCH:-12}
 
 for option do
     case "$option" in
@@ -15,6 +17,8 @@ for option do
             echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2]'
             echo 'Modes: mono=640x200x2, color=320x200x4, tandy=320x200x16 (default)'
             echo 'Mouse: mouse=COM1 (/dev/ttyS0), none=keyboard-only (default)'
+            echo 'Protocol: pc=5-byte Mouse Systems (default), ms=Microsoft via MOUSE_TYPE'
+            echo 'Lag tuning: MOUSE_BATCH=1 disables motion coalescing (default 12)'
             exit 0 ;;
         *) echo "Unknown option: $option" >&2
            echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2]' >&2
@@ -27,7 +31,7 @@ case "$TANDY_MODE" in
     color|tandy) unset MONOMODE ;;
     *) echo "Invalid TANDY_MODE: $TANDY_MODE" >&2; exit 1 ;;
 esac
-export TANDY_MODE MOUSE_PORT MOUSE_TYPE
+export TANDY_MODE MOUSE_PORT MOUSE_TYPE MOUSE_BATCH
 
 # Safe parser test hook; does not launch graphics when set.
 if [ "${NXCGA_PRINT_CONFIG:-0}" = 1 ]; then
