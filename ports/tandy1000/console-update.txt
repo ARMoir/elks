@@ -1,17 +1,21 @@
-Tandy ELKS: return from Nano-X to the shell
+Tandy ELKS: graphics modes, mouse choices and return to the shell
 
-This update is for the existing Tandy CF image. It preserves the card's
-partition layout, configuration and other files.
+This update is for an existing Tandy CompactFlash image. It preserves the
+partition layout, configuration and unrelated files.
 
-With ELKS shut down and the CF card in your PC's reader, copy both files from
-this ZIP's bin folder into the CF card's BIN folder, replacing NXSTART and
-NANO-X. Copy the executables as files; do not extract or decompress them.
+With ELKS shut down and the CF card in your PC's reader, copy all three files
+from the ZIP's bin folder into the CF card's BIN folder:
+  NXSTART, NANO-X, NXCGA
+Overwrite the old versions. Copy the files as-is; do not decompress them.
 Safely eject the card and boot the Tandy again.
 
-Run nxcga none (keyboard) or nxcga mouse (single serial port). Ctrl+A should
-close graphics, finish cleaning up its processes and return to a visible #
-prompt. Q in the launcher also exits. In Tetris, Q closes the game first.
+Run 'nxcga tandy mouse' or 'nxcga tandy none' for native Tandy 320x200
+16 colors. 'nxcga color mouse/none' is standard 4-color CGA, and
+'nxcga mono mouse/none' retains the original 640x200 black-and-white mode.
+'nxcga mouse' and 'nxcga none' still work, and select 16-color Tandy by default.
+The mouse option always uses the single COM1 serial port.
 
-The revised session manager waits for both the server and launcher, handles
-client disconnects, restores the terminal and clears/homes the text display.
-Real-hardware retesting of this return path is still needed.
+Ctrl+A should close graphics and return to a visible # prompt. Q in
+the launcher exits; in Tetris Q closes that app first. The session manager
+restores terminal settings, clears the console and waits for child processes.
+Video color modes, shell return, and physical serial mouse need hardware tests.

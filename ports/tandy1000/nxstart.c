@@ -1,4 +1,4 @@
-/* Small keyboard/serial-mouse launcher for 640x200 CGA-compatible displays. */
+/* Small keyboard/serial-mouse launcher for Tandy 320x200 and CGA displays. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
     if (GrOpen() < 0) return 1;
     GrGetScreenInfo(&screen);
     window = GrNewWindowEx(GR_WM_PROPS_APPWINDOW | GR_WM_PROPS_NORESIZE,
-        "ELKS CGA Apps", GR_ROOT_WINDOW_ID, (screen.cols - 250)/2, 12,
+        "ELKS Tandy Apps", GR_ROOT_WINDOW_ID, (screen.cols - 250)/2, 12,
         250, 148, GR_RGB(255,255,255));
     gc = GrNewGC();
     GrSetGCFont(gc, GrCreateFontEx(GR_FONT_SYSTEM_FIXED, 0, 0, NULL));

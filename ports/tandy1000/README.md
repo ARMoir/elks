@@ -78,21 +78,38 @@ not all resident in RAM at once. Networking is disabled in this first build.
 
 ## TGA and the optional serial mouse
 
-This build uses TGA's CGA-compatible mode: 640x200, two colors. It does not
-implement Tandy's native 16-color graphics, and does not start the VGA/CDE
-desktop from the PS/2 image. Graphics stay opt-in for the first hardware test.
-The launcher selects the driver's two-color palette so window titles and
-controls retain contrast on the monochrome display.
-The CGA build also replaces VGA-specific window-copy operations with CGA
-pixel operations and preserves the memory-surface format expected by ELKS.
-The apps use contrasting colors and layouts sized for the 200-line display.
+Graphics remain opt-in, but the driver now supports three runtime modes:
+- `tandy`: TGA native BIOS mode 09h, 320x200 with 16 colors (default).
+- `color`: CGA BIOS mode 04h, 320x200 with 4 colors.
+- `mono`: CGA BIOS mode 06h, 640x200 with 2 colors (fallback).
+
+The Tandy 16-color mode uses 32 KiB of screen memory, packed 4-bit pixels
+and four interleaved 8 KiB banks. The standard CGA modes use two interleaved
+banks, with 2 or 1 bit per pixel respectively. All modes use the same
+CGА-safe Nano-X pixel blitter and retain packed 4bpp memory surfaces in ELKS.
+There is no VGA or PS/2 CDE desktop in this image. Graphics are opt-in.
+The old monochrome fallback is still available and unaffected by mouse choice.
+The apps remain sized for 200-line displays. Color modes and the screen
+restore path need confirmation on the physical Tandy.
 Nano-X, Tetris, Mines, Clock and Eyes are included with a small launcher sized
 for the 200-line display. At the shell, use:
 
 ```text
-nxcga mouse  serial mouse on the single COM1 port (/dev/ttyS0, 3F8, IRQ4)
-nxcga none   keyboard-only launcher
+nxcga mouse        native Tandy 16 colors, serial mouse on COM1 (single port)
+nxcga none         native Tandy 16 colors, keyboard only
+nxcga tandy mouse  explicit 16 colors, serial mouse
+nxcga tandy none   explicit 16 colors, keyboard only
+nxcga color mouse  CGA 4 colors, serial mouse
+nxcga color none   CGA 4 colors, keyboard only
+nxcga mono mouse   CGA 2 colors, serial mouse
+nxcga mono none    CGA 2 colors, keyboard only
 ```
+
+The graphics mode and mouse choice can be given in either order. Mouse
+selection does not change video mode. The `mouse` argument uses the single
+COM1 port, `none` leaves the mouse disabled. The launcher also accepts
+`com1` and `com2` as optional address overrides, although the EX card has
+only one physical serial connector. Run `nxcga --help` for usage.
 
 In the launcher, keys 1-4 start its four apps. Ctrl+A returns to the console
 from any app using Nano-X's built-in exit shortcut. Q or Escape also returns
@@ -127,4 +144,5 @@ actual image's applications, boot options and login profile to verify them.
 Emulation can check boot, different BIOS geometries, console apps and CGA
 graphics. CF boot, CGA Tetris and usable game speed have been confirmed on the
 real V20-equipped Tandy. The revised Ctrl+A return to the shell needs retesting
-there; physical serial-mouse operation is also still unverified.
+there; physical serial-mouse operation and the new 4-color and 16-color
+video modes are also still unverified.

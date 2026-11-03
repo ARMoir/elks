@@ -1,16 +1,40 @@
 #!/bin/sh
-# Microsoft-compatible serial mouse by default. No serial login runs here.
-case "$1" in
-    mouse|com1) MOUSE_PORT=/dev/ttyS0 ;;
-    com2) MOUSE_PORT=/dev/ttyS1 ;;
-    none) MOUSE_PORT=none ;;
-    '') MOUSE_PORT=${MOUSE_PORT:-none} ;;
-    *) echo 'Usage: nxcga [mouse|none|com1|com2]'; exit 1 ;;
-esac
+# Graphics and pointing devices are independent choices.
+# Examples: nxcga tandy mouse | nxcga color none | nxcga mono mouse
+TANDY_MODE=${TANDY_MODE:-tandy}
+MOUSE_PORT=${MOUSE_PORT:-none}
 MOUSE_TYPE=${MOUSE_TYPE:-ms}
-# Use the driver's two-color palette so colored app chrome retains contrast.
-MONOMODE=1
-export MOUSE_TYPE MOUSE_PORT MONOMODE
+
+for option do
+    case "$option" in
+        mono|color|tandy) TANDY_MODE=$option ;;
+        mouse|com1) MOUSE_PORT=/dev/ttyS0 ;;
+        com2) MOUSE_PORT=/dev/ttyS1 ;;
+        none) MOUSE_PORT=none ;;
+        -h|--help)
+            echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2]'
+            echo 'Modes: mono=640x200x2, color=320x200x4, tandy=320x200x16 (default)'
+            echo 'Mouse: mouse=COM1 (/dev/ttyS0), none=keyboard-only (default)'
+            exit 0 ;;
+        *) echo "Unknown option: $option" >&2
+           echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2]' >&2
+           exit 1 ;;
+    esac
+done
+
+case "$TANDY_MODE" in
+    mono) MONOMODE=1; export MONOMODE ;;
+    color|tandy) unset MONOMODE ;;
+    *) echo "Invalid TANDY_MODE: $TANDY_MODE" >&2; exit 1 ;;
+esac
+export TANDY_MODE MOUSE_PORT MOUSE_TYPE
+
+# Safe parser test hook; does not launch graphics when set.
+if [ "${NXCGA_PRINT_CONFIG:-0}" = 1 ]; then
+    printf 'mode=%s mouse=%s protocol=%s\n' "$TANDY_MODE" "$MOUSE_PORT" "$MOUSE_TYPE"
+    exit 0
+fi
+
 /bin/nxstart
 status=$?
 /bin/stty sane
