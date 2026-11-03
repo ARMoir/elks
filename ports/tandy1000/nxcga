@@ -8,7 +8,9 @@ case "$1" in
     *) echo 'Usage: nxcga [mouse|none|com1|com2]'; exit 1 ;;
 esac
 MOUSE_TYPE=${MOUSE_TYPE:-ms}
-export MOUSE_TYPE MOUSE_PORT
+# Use the driver's two-color palette so colored app chrome retains contrast.
+MONOMODE=1
+export MOUSE_TYPE MOUSE_PORT MONOMODE
 /bin/nxstart
 status=$?
 /bin/stty sane

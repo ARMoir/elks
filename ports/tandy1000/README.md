@@ -73,6 +73,8 @@ not all resident in RAM at once. Networking is disabled in this first build.
 This build uses TGA's CGA-compatible mode: 640x200, two colors. It does not
 implement Tandy's native 16-color graphics, and does not start the VGA/CDE
 desktop from the PS/2 image. Graphics stay opt-in for the first hardware test.
+The launcher selects the driver's two-color palette so window titles and
+controls retain contrast on the monochrome display.
 Nano-X, Tetris, Mines, Clock and Eyes are included with a small launcher sized
 for the 200-line display. At the shell, use:
 
