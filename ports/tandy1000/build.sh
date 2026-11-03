@@ -40,9 +40,9 @@ sed -i '/^clock -s /d' "$template/etc/rc.sys"
 printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"
 
 # Fit the target 31,360-sector card using 31 complete reference cylinders.
-# Reserve its initial track for the MBR and leave the final 112 sectors unused.
+# Reserve its initial track for the MBR. Use a 1 KiB-aligned partition size.
 make -C image TEMPLATE_DIR="$template" \
-    FAT_MKFSOPTS='-T 31185 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
+    FAT_MKFSOPTS='-T 31184 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
 cp ports/tandy1000/nxcga target/bin/nxcga
 chmod 755 target/bin/nxcga
 mcopy -o -i image/hd.img target/bin/nxcga ::/bin/nxcga

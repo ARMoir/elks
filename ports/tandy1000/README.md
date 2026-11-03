@@ -9,9 +9,11 @@ TGA display and the rkrenicki Tandy EX/HX 3-in-1 expansion card (single serial p
 - Raw whole-disk image: 15,998,976 bytes, or 31,248 sectors of 512 bytes.
 - This fits the target "16 MB" CF card reporting 31,360 sectors. The earlier
   16 MiB image was too large for that card; use the `smallcard` image instead.
-- Active primary FAT16 partition, starting at LBA 63, with 31,185 sectors.
+- Active primary FAT16 partition, starting at LBA 63, with 31,184 sectors.
+- The partition length is aligned to ELKS's 1 KiB block I/O, including its final block.
 - The image ends at a reference cylinder boundary for old CHS BIOS compatibility.
-  The target card's remaining 112 sectors are unallocated.
+  One padding sector follows the partition within the image; the target card's
+  remaining 112 sectors are also unallocated.
 - Boot uses the installed XTIDE BIOS, not direct ATA controller accesses.
 - The MBR queries BIOS disk geometry and supplies it to the loaded ELKS FAT
   boot sector. It also uses that geometry to find the partition by LBA. This

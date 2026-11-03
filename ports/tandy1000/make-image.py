@@ -11,7 +11,8 @@ SECTOR = 512
 CARD_SECTORS = 31360
 DISK_SECTORS = 31 * 16 * 63
 START = 63
-LENGTH = DISK_SECTORS - START
+# ELKS block I/O uses 1 KiB buffers, so keep the partition an even sector count.
+LENGTH = (DISK_SECTORS - START) // 2 * 2
 
 
 def chs(lba):
@@ -29,6 +30,7 @@ def verify(data):
     assert entry[1:4] == chs(START)
     assert entry[5:8] == chs(START + LENGTH - 1)
     assert struct.unpack_from("<II", entry, 8) == (START, LENGTH)
+    assert LENGTH % 2 == 0
     assert data[462:510] == bytes(48)
     boot = data[START * SECTOR:(START + 1) * SECTOR]
     assert boot[510:512] == b"\x55\xaa"
@@ -44,7 +46,7 @@ def verify(data):
     assert 4085 <= clusters < 65525, clusters
     fat = (START + reserved) * SECTOR
     assert data[fat:fat + fat_sectors * SECTOR] == data[fat + fat_sectors * SECTOR:fat + 2 * fat_sectors * SECTOR]
-    assert START + LENGTH == DISK_SECTORS
+    assert 0 <= DISK_SECTORS - (START + LENGTH) < 2
     print(f"Verified: {DISK_SECTORS}-sector disk fits {CARD_SECTORS}-sector CF, "
           f"active FAT16 partition LBA {START}+{LENGTH}, {clusters} clusters")
 
