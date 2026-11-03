@@ -6,9 +6,12 @@ TGA display and the rkrenicki Tandy EX/HX 3-in-1 expansion card (single serial p
 
 ## Disk and startup
 
-- Raw whole-disk image: exactly 16,777,216 bytes (16 MiB).
-- Active primary FAT16 partition, starting at LBA 63, with 32,193 sectors.
-- The final incomplete cylinder is unallocated for old CHS BIOS compatibility.
+- Raw whole-disk image: 15,998,976 bytes, or 31,248 sectors of 512 bytes.
+- This fits the target "16 MB" CF card reporting 31,360 sectors. The earlier
+  16 MiB image was too large for that card; use the `smallcard` image instead.
+- Active primary FAT16 partition, starting at LBA 63, with 31,185 sectors.
+- The image ends at a reference cylinder boundary for old CHS BIOS compatibility.
+  The target card's remaining 112 sectors are unallocated.
 - Boot uses the installed XTIDE BIOS, not direct ATA controller accesses.
 - The MBR queries BIOS disk geometry and supplies it to the loaded ELKS FAT
   boot sector. It also uses that geometry to find the partition by LBA. This
@@ -34,15 +37,18 @@ https://github.com/rkrenicki/Tandy-EX-HX-3in1-V2
 ## Writing the card
 
 Extract the ZIP, then write the `.img` as a raw image to the entire CF device,
-not as a file copied into a DOS partition. Use a card with at least 16 MiB
-(16,777,216 bytes) of addressable space. This replaces the card's partition
+not as a file copied into a DOS partition. Use a card with at least 31,248
+512-byte sectors (15,998,976 bytes) of addressable space. This replaces the card's partition
 table and existing data. Extra space on a larger card remains unallocated.
 
-On Windows, use a raw disk-image writer such as the one used for the other
-images, selecting the CF device. On Linux, after confirming the device name:
+On Windows, select `elks-tandy1000ex-cf16-smallcard.img` and the CF card in
+Win32 Disk Imager, then Write. It requires 31,248 sectors, so the target card's
+31,360 sectors are sufficient. Cancel any insufficient-space warning; do not
+truncate the image or continue with the earlier oversized image.
+On Linux, after confirming the device name:
 
 ```sh
-sudo dd if=elks-tandy1000ex-cf16.img of=/dev/sdX bs=1M conv=fsync status=progress
+sudo dd if=elks-tandy1000ex-cf16-smallcard.img of=/dev/sdX bs=1M conv=fsync status=progress
 ```
 
 Replace `/dev/sdX` with the whole CF device, not a numbered partition.

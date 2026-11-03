@@ -1,4 +1,4 @@
-name: Tandy 1000 EX V20 XTIDE 16 MiB CF
+name: Tandy 1000 EX V20 XTIDE 16 MB CF
 
 on:
   workflow_dispatch:
@@ -65,9 +65,9 @@ jobs:
       - name: Upload CF image, checksum and instructions
         uses: actions/upload-artifact@v4
         with:
-          name: elks-tandy1000ex-v20-xtide-cf16
+          name: elks-tandy1000ex-v20-xtide-cf16-smallcard
           path: |
-            image/elks-tandy1000ex-cf16.img
-            image/elks-tandy1000ex-cf16.sha256
-            image/elks-tandy1000ex-cf16-README.txt
+            image/elks-tandy1000ex-cf16-smallcard.img
+            image/elks-tandy1000ex-cf16-smallcard.sha256
+            image/elks-tandy1000ex-cf16-smallcard-README.txt
           if-no-files-found: error

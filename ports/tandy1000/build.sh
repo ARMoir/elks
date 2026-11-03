@@ -39,10 +39,10 @@ printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE
 sed -i '/^clock -s /d' "$template/etc/rc.sys"
 printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"
 
-# One complete 32-cylinder BIOS region, minus the initial reserved track.
-# Leave the final partial cylinder outside the filesystem for old CHS BIOSes.
+# Fit the target 31,360-sector card using 31 complete reference cylinders.
+# Reserve its initial track for the MBR and leave the final 112 sectors unused.
 make -C image TEMPLATE_DIR="$template" \
-    FAT_MKFSOPTS='-T 32193 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
+    FAT_MKFSOPTS='-T 31185 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
 cp ports/tandy1000/nxcga target/bin/nxcga
 chmod 755 target/bin/nxcga
 mcopy -o -i image/hd.img target/bin/nxcga ::/bin/nxcga
@@ -51,10 +51,10 @@ mcopy -o -i image/hd.img target/root/TANDY.TXT ::/root/TANDY.TXT
 
 ia16-elf-as -o image/tandy-mbr.o ports/tandy1000/mbr.S
 ia16-elf-ld -T elks/elks-raw.ld -o image/tandy-mbr.bin image/tandy-mbr.o
-python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elks-tandy1000ex-cf16.img
+python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elks-tandy1000ex-cf16-smallcard.img
 
 # Verify image contents rather than just the staging directory.
-volume='image/elks-tandy1000ex-cf16.img@@32256'
+volume='image/elks-tandy1000ex-cf16-smallcard.img@@32256'
 mkdir -p image/tandy-verify
 for app in sh login getty elkfetch nxcga nxstart nano-x nxeyes nxtetris nxmine nxclock fm kilo invaders ttypong; do
     mcopy -i "$volume" "::/bin/$app" "image/tandy-verify/$app"
@@ -66,4 +66,4 @@ cmp ports/tandy1000/bootopts image/tandy-verify/bootopts
 cmp ports/tandy1000/login.profile image/tandy-verify/profile
 cmp ports/tandy1000/nxcga image/tandy-verify/nxcga
 mdir -i "$volume" ::/bin
-cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-README.txt
+cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt

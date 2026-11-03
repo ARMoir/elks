@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Wrap the populated FAT16 filesystem in an exactly 16 MiB CF disk image."""
+"""Wrap the FAT16 filesystem in an image that fits the target 16 MB CF card."""
 from pathlib import Path
 import hashlib
 import struct
 import sys
 
 SECTOR = 512
-DISK_SECTORS = 32768
+# The target card reports 31,360 sectors, less than 16 MiB (32,768 sectors).
+# Use 31 complete 16-head/63-sector cylinders, leaving 112 sectors on that card.
+CARD_SECTORS = 31360
+DISK_SECTORS = 31 * 16 * 63
 START = 63
-LENGTH = 32 * 16 * 63 - START
+LENGTH = DISK_SECTORS - START
 
 
 def chs(lba):
@@ -19,6 +22,7 @@ def chs(lba):
 
 def verify(data):
     assert len(data) == DISK_SECTORS * SECTOR
+    assert len(data) <= CARD_SECTORS * SECTOR
     assert data[510:512] == b"\x55\xaa"
     entry = data[446:462]
     assert entry[0] == 0x80 and entry[4] == 0x04
@@ -40,8 +44,9 @@ def verify(data):
     assert 4085 <= clusters < 65525, clusters
     fat = (START + reserved) * SECTOR
     assert data[fat:fat + fat_sectors * SECTOR] == data[fat + fat_sectors * SECTOR:fat + 2 * fat_sectors * SECTOR]
-    assert START + LENGTH <= 32 * 16 * 63 <= DISK_SECTORS
-    print(f"Verified: 16 MiB disk, active FAT16 partition LBA {START}+{LENGTH}, {clusters} clusters")
+    assert START + LENGTH == DISK_SECTORS
+    print(f"Verified: {DISK_SECTORS}-sector disk fits {CARD_SECTORS}-sector CF, "
+          f"active FAT16 partition LBA {START}+{LENGTH}, {clusters} clusters")
 
 
 def main():
