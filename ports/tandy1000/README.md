@@ -115,10 +115,14 @@ In the launcher, keys 1-4 start its four apps. Ctrl+A returns to the console
 from any app using Nano-X's built-in exit shortcut. Q or Escape also returns
 when the launcher has focus. With a mouse, click its Return to console entry
 or close its window. Close app windows first to retain their game progress.
-The session manager owns the server and launcher, waits for them and their
-apps to exit, restores terminal settings, then clears and homes the text
-console before the shell resumes. Ctrl+A and normal window exits share this
-cleanup, including when a client loses its server connection.
+The session manager owns the server and launcher, waits for the session to end,
+restores terminal settings, then clears and homes the text console before the
+shell resumes. The server runs in persistent mode so that closing a game,
+clock or Eyes window does not shut down Nano-X. Child exits are reaped from
+the launcher event loop rather than from its SIGCHLD handler. The launcher
+should remain visible after an application exits; choosing Return to console
+or pressing Ctrl+A intentionally ends the session. These changes need
+confirmation on the real Tandy.
 Tetris uses N for a new game, J/K to move, D/F to rotate, Space to drop,
 P/C to pause/continue and Q to close. Mines requires the mouse to play.
 No serial login runs, so the mouse has exclusive use of the port. The
