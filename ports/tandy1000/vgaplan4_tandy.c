@@ -6,6 +6,7 @@
  *
  * Based on Microwindows / BOGL CGA video driver.
  */
+#include <stddef.h>
 #include <assert.h>
 #include "device.h"
 #include "vgaplan4.h"
