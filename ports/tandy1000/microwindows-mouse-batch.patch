@@ -1,0 +1,93 @@
+--- a/src/nanox/srvevent.c
++++ b/src/nanox/srvevent.c
+@@ -110,33 +110,63 @@
+  * This function doesn't block, but is only called when Poll() returns TRUE
+  * or GsSelect shows some data waiting to be read on the mouse file descriptor.
+  */
+-GR_BOOL GsCheckMouseEvent(void)
+-{
+-	GR_COORD	rootx;		/* latest mouse x position */
+-	GR_COORD	rooty;		/* latest mouse y position */
+-	int		newbuttons;	/* latest buttons */
+-	int		mousestatus;	/* latest mouse status */
+-
+-	if (mousedev.Poll && (mousedev.Poll() == 0))
+-			return FALSE;
+-
+-	/* Read the latest mouse status*/
+-	mousestatus = GdReadMouse(&rootx, &rooty, &newbuttons);
+-	if (mousestatus <= 0)
+-	{
+-		if (mousestatus == MOUSE_FAIL)
+-			GsError(GR_ERROR_MOUSE_ERROR, 0);
+-		return FALSE;
+-	}
+-
+-	/* Deliver events as appropriate*/
+-	GsHandleMouseStatus(rootx, rooty, newbuttons);
+-
+-	/* possibly reset portrait mode based on mouse position*/
+-	if (autoportrait)
+-		GsSetPortraitModeFromXY(rootx, rooty);
+-	return TRUE;
+-}
++/*
++ * On slow 8088/V20 systems, drawing the cursor for every historical
++ * 5-byte serial mouse packet makes it lag far behind the user's hand.
++ * Coalesce nearby motion packets before redrawing. Never coalesce button
++ * transitions: a quick click and release must still produce both events.
++ *
++ * MOUSE_BATCH=1 restores the upstream event-by-event behavior.
++ * MOUSE_BATCH=12 is a practical default for the Tandy at 1200 baud.
++ */
++GR_BOOL GsCheckMouseEvent(void)
++{
++	GR_COORD rootx, rooty, nextx, nexty;
++	int newbuttons, nextbuttons, mousestatus, count;
++	static int batch_limit = 0;
++
++	if (mousedev.Poll && (mousedev.Poll() == 0))
++		return FALSE;
++
++	if (!batch_limit) {
++		const char *setting = getenv("MOUSE_BATCH");
++		batch_limit = setting ? atoi(setting) : 12;
++		if (batch_limit < 1) batch_limit = 1;
++		if (batch_limit > 32) batch_limit = 32;
++	}
++
++	mousestatus = GdReadMouse(&rootx, &rooty, &newbuttons);
++	if (mousestatus <= 0) {
++		if (mousestatus == MOUSE_FAIL)
++			GsError(GR_ERROR_MOUSE_ERROR, 0);
++		return FALSE;
++	}
++
++	/* Read up to batch_limit complete packets without drawing each step.
++	 * The underlying serial driver uses nonblocking reads.
++	 */
++	for (count = 1; count < batch_limit; ++count) {
++		mousestatus = GdReadMouse(&nextx, &nexty, &nextbuttons);
++		if (mousestatus <= 0) {
++			if (mousestatus == MOUSE_FAIL)
++				GsError(GR_ERROR_MOUSE_ERROR, 0);
++			break;
++		}
++		if (nextbuttons != newbuttons) {
++			/* Commit all earlier movement and the previous button state
++			 * before processing the button press/release in this packet.
++			 */
++			GsHandleMouseStatus(rootx, rooty, newbuttons);
++			newbuttons = nextbuttons;
++		}
++		rootx = nextx;
++		rooty = nexty;
++	}
++	GsHandleMouseStatus(rootx, rooty, newbuttons);
++	if (autoportrait)
++		GsSetPortraitModeFromXY(rootx, rooty);
++	return TRUE;
++}
+ 
+ /*
+  * Update keyboard status and issue events on it if necessary.
