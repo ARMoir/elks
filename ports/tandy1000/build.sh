@@ -18,6 +18,8 @@ git -C "$mw" checkout --detach 969eae602a8a5a022ea978da4016f97409d4421e
 # Use CGA pixel copies instead of VGA plane registers and retain the packed
 # memory-surface format while selecting the two-color display palette.
 git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-cga.patch"
+# Resync 3-byte serial mouse packets after dropped bytes, and avoid V20 cursor acceleration.
+git -C "$mw" apply "$TOPDIR/ports/tandy1000/microwindows-mouse.patch"
 # Native Tandy 16-color and standard 4-color/mono graphics share one Nano-X build.
 # The graphics mode is selected at runtime, independently of the serial mouse.
 cp ports/tandy1000/scr_tandy.c "$mw/src/drivers/scr_cga.c"
