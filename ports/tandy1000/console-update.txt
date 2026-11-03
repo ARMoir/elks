@@ -28,4 +28,9 @@ also groups queued movement updates to reduce cursor redraw lag on the V20,
 without skipping mouse button transitions. `MOUSE_BATCH=1 nxcga mouse`
 disables grouping for comparison; the default is 12. If replacing only
 NANO-X/NXSTART/NXCGA without rewriting the CF card, these defaults still apply.
-Video color modes, cursor response, and shell return require hardware retest.
+Nano-X now uses persistent server mode and the launcher reaps child processes
+from its event loop, not from the SIGCHLD handler, so closing an individual
+app should return to the launcher instead of ending the entire GUI. Closing
+Return to console still shuts down the session cleanly.
+Video color modes, cursor response, app-close behavior, and shell return
+require hardware retest.
