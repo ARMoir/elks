@@ -67,3 +67,9 @@ cmp ports/tandy1000/login.profile image/tandy-verify/profile
 cmp ports/tandy1000/nxcga image/tandy-verify/nxcga
 mdir -i "$volume" ::/bin
 cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
+
+# Offer a small update for an already-written card, using the actual packaged
+# executables (including their ELKS executable compression).
+mkdir -p image/tandy-console-update/bin
+cp image/tandy-verify/nxstart image/tandy-verify/nano-x image/tandy-console-update/bin/
+cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt

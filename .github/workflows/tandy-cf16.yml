@@ -71,3 +71,9 @@ jobs:
             image/elks-tandy1000ex-cf16-smallcard.sha256
             image/elks-tandy1000ex-cf16-smallcard-README.txt
           if-no-files-found: error
+      - name: Upload console-return update for existing cards
+        uses: actions/upload-artifact@v4
+        with:
+          name: elks-tandy1000ex-console-return-update
+          path: image/tandy-console-update/
+          if-no-files-found: error

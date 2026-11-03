@@ -6,12 +6,15 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include "nano-X.h"
 
 static const char *names[] = { "1  Tetris", "2  Mines", "3  Clock", "4  Eyes", "Q  Return to console" };
 static const char *paths[] = { "/bin/nxtetris", "/bin/nxmine", "/bin/nxclock", "/bin/nxeyes" };
 static GR_WINDOW_ID window;
 static GR_GC_ID gc;
+static pid_t server_pid, client_pid;
+static volatile sig_atomic_t stopping;
 
 static void reap(int sig)
 {
@@ -19,16 +22,91 @@ static void reap(int sig)
     while (waitpid(-1, NULL, WNOHANG) > 0) ;
 }
 
-static void quit(int sig)
+/* Also runs when the client library exits after losing its server connection. */
+static void cleanup_clients(void)
 {
     int pid;
     signal(SIGTERM, SIG_IGN);
     signal(SIGCHLD, SIG_DFL);
-    GrClose();
     kill(-getpid(), SIGTERM);
     do { pid = waitpid(-1, NULL, 0); }
     while (pid > 0 || (pid < 0 && errno == EINTR));
+}
+
+static void quit(int sig)
+{
+    signal(SIGTERM, SIG_IGN);
     exit(0);
+}
+
+static void stop_session(int sig)
+{
+    stopping = 1;
+    if (client_pid > 0) {
+        kill(-client_pid, SIGTERM);
+        kill(client_pid, SIGTERM);
+    }
+    if (server_pid > 0) kill(server_pid, SIGTERM);
+}
+
+/* Keep a parent outside Nano-X's socket calls until both children have exited. */
+static int run_session(void)
+{
+    struct termios saved;
+    int have_termios = tcgetattr(0, &saved) == 0;
+    int pid, status, tries, result = 1;
+    static const char reset[] = "\033[0m\033[?25h\033[H\033[2J";
+
+    if (setenv("NANOX_MANAGED", "1", 1) < 0) return 1;
+    signal(SIGINT, stop_session);
+    signal(SIGTERM, stop_session);
+    signal(SIGHUP, stop_session);
+    unlink(GR_NAMED_SOCKET);
+    server_pid = vfork();
+    if (server_pid == 0) {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTERM, SIG_DFL);
+        signal(SIGHUP, SIG_DFL);
+        execl("/bin/nano-x", "nano-x", (char *)NULL);
+        _exit(127);
+    }
+    if (server_pid < 0) {
+        server_pid = 0;
+        goto done;
+    }
+    /* A slow CF card may take time to load the server. Never start a second one. */
+    for (tries = 0; tries < 100 && !stopping; ++tries) {
+        pid = waitpid(server_pid, &status, WNOHANG);
+        if (pid == server_pid) { server_pid = 0; goto done; }
+        if (access(GR_NAMED_SOCKET, F_OK) == 0) break;
+        usleep(100000L);
+    }
+    if (tries == 100 || stopping) goto done;
+    client_pid = vfork();
+    if (client_pid == 0) {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTERM, SIG_DFL);
+        signal(SIGHUP, SIG_DFL);
+        execl("/bin/nxstart", "nxstart", "--client", (char *)NULL);
+        _exit(127);
+    }
+    if (client_pid < 0) { client_pid = 0; goto done; }
+    do { pid = waitpid(-1, &status, 0); } while (pid < 0 && errno == EINTR);
+    if (pid == server_pid) server_pid = 0;
+    if (pid == client_pid) client_pid = 0;
+    if (pid > 0 && WIFEXITED(status)) result = WEXITSTATUS(status);
+done:
+    stop_session(0);
+    while (server_pid > 0 || client_pid > 0) {
+        pid = waitpid(-1, NULL, 0);
+        if (pid < 0 && errno == EINTR) continue;
+        if (pid < 0) break;
+        if (pid == server_pid) server_pid = 0;
+        if (pid == client_pid) client_pid = 0;
+    }
+    if (have_termios) tcsetattr(0, TCSANOW, &saved);
+    write(1, reset, sizeof(reset) - 1);
+    return result;
 }
 
 static void launch(int app)
@@ -55,12 +133,14 @@ static void draw(void)
     GrText(window, gc, 10, 137, "Ctrl+A returns to console", -1, GR_TFASCII);
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
     GR_SCREEN_INFO screen;
     GR_EVENT event;
     GR_WINDOW_INFO info;
-    setsid();
+    if (argc != 2 || strcmp(argv[1], "--client")) return run_session();
+    if (setsid() < 0) return 1;
+    atexit(cleanup_clients);
     signal(SIGCHLD, reap);
     signal(SIGTERM, quit);
     if (GrOpen() < 0) return 1;

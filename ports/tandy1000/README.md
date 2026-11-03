@@ -98,6 +98,10 @@ In the launcher, keys 1-4 start its four apps. Ctrl+A returns to the console
 from any app using Nano-X's built-in exit shortcut. Q or Escape also returns
 when the launcher has focus. With a mouse, click its Return to console entry
 or close its window. Close app windows first to retain their game progress.
+The session manager owns the server and launcher, waits for them and their
+apps to exit, restores terminal settings, then clears and homes the text
+console before the shell resumes. Ctrl+A and normal window exits share this
+cleanup, including when a client loses its server connection.
 Tetris uses N for a new game, J/K to move, D/F to rotate, Space to drop,
 P/C to pause/continue and Q to close. Mines requires the mouse to play.
 No serial login runs, so the mouse has exclusive use of the port. The
@@ -121,5 +125,6 @@ The image builder checks its size, MBR signatures and partition bounds, FAT16
 cluster count, identical FAT copies and BPB offsets. The build extracts the
 actual image's applications, boot options and login profile to verify them.
 Emulation can check boot, different BIOS geometries, console apps and CGA
-graphics. Actual V20 execution, the Tandy video-memory arrangement and physical
-serial-mouse operation still need testing on the real machine.
+graphics. CF boot, CGA Tetris and usable game speed have been confirmed on the
+real V20-equipped Tandy. The revised Ctrl+A return to the shell needs retesting
+there; physical serial-mouse operation is also still unverified.

@@ -183,3 +183,26 @@
  	GrSetGCForeground(delaygc, BLACK);
  	GrSetGCForeground(blackgc, BLACK);
  	GrSetGCMode(delaygc, GR_MODE_XOR);
+--- a/src/nanox/client.c
++++ b/src/nanox/client.c
+@@ -341,7 +341,7 @@
+ 
+ #if UNIX && AUTO_START_SERVER
+ 	/* check if Nano-X server running, and start if not */
+-	if (access(GR_NAMED_SOCKET, F_OK) < 0) {
++	if (!getenv("NANOX_MANAGED") && access(GR_NAMED_SOCKET, F_OK) < 0) {
+ 		if (!access(BIN_NANOX, F_OK)) {
+ 		    EPRINTF("Starting %s\n", BIN_NANOX);
+ 			if (fork() == 0) {
+--- a/src/nanox/srvmain.c
++++ b/src/nanox/srvmain.c
+@@ -1054,6 +1054,9 @@
+ void
+ GsTerminate(void)
+ {
++#if HAVE_SIGNAL
++	signal(SIGTERM, SIG_IGN); /* shutdown may also be requested by the session parent */
++#endif
+ #if !NONETWORK
+ 	GsCloseSocket();
+ #endif

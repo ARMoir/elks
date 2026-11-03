@@ -1,0 +1,17 @@
+Tandy ELKS: return from Nano-X to the shell
+
+This update is for the existing Tandy CF image. It preserves the card's
+partition layout, configuration and other files.
+
+With ELKS shut down and the CF card in your PC's reader, copy both files from
+this ZIP's bin folder into the CF card's BIN folder, replacing NXSTART and
+NANO-X. Copy the executables as files; do not extract or decompress them.
+Safely eject the card and boot the Tandy again.
+
+Run nxcga none (keyboard) or nxcga mouse (single serial port). Ctrl+A should
+close graphics, finish cleaning up its processes and return to a visible #
+prompt. Q in the launcher also exits. In Tetris, Q closes the game first.
+
+The revised session manager waits for both the server and launcher, handles
+client disconnects, restores the terminal and clears/homes the text display.
+Real-hardware retesting of this return path is still needed.
