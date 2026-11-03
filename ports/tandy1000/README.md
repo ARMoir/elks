@@ -23,7 +23,8 @@ TGA display and the rkrenicki Tandy EX/HX 3-in-1 expansion card (single serial p
 The linked V2 reference documents 640 KB of base system RAM and 96 KB of upper
 memory, CF I/O at 300 and BIOS ROM at C0000-C7FFF. This image targets the
 single-serial-port variant, using COM1 (3F8/IRQ4) for the mouse. It does not
-require a second serial port. The extra RAM at C8000-DFFFF is optional: after a successful first
+require a second serial port. The extra RAM at C8000-DFFFF is optional: first
+verify that your board revision has RAM at that range. After a successful first
 boot, uncomment `umb=0xC800:0x1800` in `/bootopts` to make that 96 KiB available
 to ELKS. Do not include the C0000-C7FFF ROM range.
 

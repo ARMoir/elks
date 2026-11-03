@@ -40,7 +40,7 @@ OBJS += rd.o                        # CONFIG_BLK_DEV_RAM
 OBJS += idequery.o                  # CONFIG_IDE_PROBE
 OBJS += romflash.o                  # CONFIG_ROMFS_FS
 
-ifdef CONFIG_ASYNCIO
+ifdef CONFIG_BLK_DEV_FD
 OBJS += directfd.o                  # CONFIG_BLK_DEV_FD
 endif
 
