@@ -15,6 +15,8 @@ mw="$TOPDIR/extapps/microwindows"
 mkdir -p "$TOPDIR/extapps"
 git clone https://github.com/ghaerr/microwindows.git "$mw"
 git -C "$mw" checkout --detach 969eae602a8a5a022ea978da4016f97409d4421e
+# The older CGA source uses NULL without including its definition.
+sed -i '1i#include <stddef.h>' "$mw/src/drivers/vgaplan4_cga.c"
 sed -i '/^CFLAGS += -DCONFIG_HW_VGA=1$/d' "$mw/src/demos/nanox/Makefile.elks"
 cp ports/tandy1000/nxstart.c "$mw/src/demos/nanox/nxstart.c"
 cp ports/nxeyes/nxeyes.c "$mw/src/demos/nanox/nxeyes.c"
