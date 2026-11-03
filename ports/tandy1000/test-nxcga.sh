@@ -23,7 +23,7 @@ check 'mode=color mouse=/dev/ttyS0 protocol=ms' color mouse
 check 'mode=mono mouse=none protocol=ms' mono none
 check 'mode=mono mouse=/dev/ttyS0 protocol=ms' mono mouse
 check 'mode=color mouse=/dev/ttyS1 protocol=ms' com2 color
-check 'mode=tandy mouse=/dev/ttyS0 protocol=pc' tandy mouse
+MOUSE_TYPE=pc check 'mode=tandy mouse=/dev/ttyS0 protocol=pc' tandy mouse
 if NXCGA_PRINT_CONFIG=1 /bin/sh "$launcher" invalid-option >/dev/null 2>&1; then
     echo 'Invalid graphics or pointing-device option accepted' >&2
     exit 1
