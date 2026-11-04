@@ -381,7 +381,6 @@ int main(int argc, char **argv)
 {
     GR_SCREEN_INFO screen;
     GR_EVENT event;
-    GR_WINDOW_INFO info;
     const char *mode;
 
     if (argc != 2 || strcmp(argv[1], "--client")) return run_session();
@@ -428,8 +427,9 @@ int main(int argc, char **argv)
             if (event.keystroke.wid == window) key_action(event.keystroke.ch);
         } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
             if (event.button.wid != window) continue;
-            GrGetWindowInfo(window, &info);
-            GrRaiseWindow(info.parent != GR_ROOT_WINDOW_ID ? info.parent : window);
+            /* The full-screen desktop must stay behind open application
+             * windows. Raising it here would hide them on a 320x200 screen.
+             */
             GrSetFocus(window);
             mouse_action(event.button.x, event.button.y);
         }
