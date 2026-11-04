@@ -142,13 +142,13 @@ done:
 #define DM_CATS 5
 #define DM_ITEMS 5
 
-#define BLUE       GR_RGB(0, 0, 170)
-#define DARKBLUE   GR_RGB(0, 0, 85)
-#define CYAN       GR_RGB(0, 170, 170)
-#define WHITE      GR_RGB(255, 255, 255)
-#define BLACK      GR_RGB(0, 0, 0)
-#define LTGRAY     GR_RGB(192, 192, 192)
-#define MAGENTA    GR_RGB(170, 0, 170)
+#define DM_BLUE       GR_RGB(0, 0, 170)
+#define DM_DARKBLUE   GR_RGB(0, 0, 85)
+#define DM_CYAN       GR_RGB(0, 170, 170)
+#define DM_WHITE      GR_RGB(255, 255, 255)
+#define DM_BLACK      GR_RGB(0, 0, 0)
+#define DM_LTGRAY     GR_RGB(192, 192, 192)
+#define DM_MAGENTA    GR_RGB(170, 0, 170)
 
 enum { ACTION_RUN, ACTION_INFO, ACTION_HELP, ACTION_CONSOLE, ACTION_CLASSIC, ACTION_TEXTGAMES };
 typedef struct {
@@ -220,73 +220,73 @@ static void copy_status(const char *s)
 }
 static void draw_status(void)
 {
-    fill(0, 177, DM_W, 23, DARKBLUE);
-    line(0, 176, DM_W-1, 176, CYAN);
-    text(8, 187, status_line, WHITE);
-    text(8, 198, "P/F/T/G/S menu   1-5 run   Esc exit", CYAN);
+    fill(0, 177, DM_W, 23, DM_DARKBLUE);
+    line(0, 176, DM_W-1, 176, DM_CYAN);
+    text(8, 187, status_line, DM_WHITE);
+    text(8, 198, "P/F/T/G/S menu   1-5 run   Esc exit", DM_CYAN);
 }
 static void draw_tabs(void)
 {
     int i, x;
-    fill(0, 18, DM_W, 19, LTGRAY);
+    fill(0, 18, DM_W, 19, DM_LTGRAY);
     for (i=0; i<DM_CATS; ++i) {
         x = 4 + 63*i;
         if (category == i) {
-            fill(x, 20, 61, 16, CYAN);
-            frame(x, 20, 61, 16, DARKBLUE);
-            text(x+5, 32, tabs[i], BLACK);
+            fill(x, 20, 61, 16, DM_CYAN);
+            frame(x, 20, 61, 16, DM_DARKBLUE);
+            text(x+5, 32, tabs[i], DM_BLACK);
         } else
-            text(x+5, 32, tabs[i], BLACK);
+            text(x+5, 32, tabs[i], DM_BLACK);
     }
 }
 static void draw_entries(void)
 {
     int i, y;
     const DMItem *item;
-    fill(8, 42, 201, 129, WHITE);
-    frame(8, 42, 201, 129, CYAN);
-    fill(9, 43, 199, 17, DARKBLUE);
-    text(18, 55, tabs[category], WHITE);
+    fill(8, 42, 201, 129, DM_WHITE);
+    frame(8, 42, 201, 129, DM_CYAN);
+    fill(9, 43, 199, 17, DM_DARKBLUE);
+    text(18, 55, tabs[category], DM_WHITE);
     for (i=0; i<DM_ITEMS; ++i) {
         item = &menus[category][i];
         y = 61 + i*21;
         if (i == selected)
-            fill(12, y, 193, 20, BLUE);
+            fill(12, y, 193, 20, DM_BLUE);
         else
-            fill(12, y, 193, 20, WHITE);
+            fill(12, y, 193, 20, DM_WHITE);
         {
             char index[4];
             index[0] = '1' + i;
             index[1] = '.';
             index[2] = 0;
-            text(19, y+14, index, i == selected ? WHITE : BLACK);
+            text(19, y+14, index, i == selected ? DM_WHITE : DM_BLACK);
         }
-        text(42, y+14, item->name, i == selected ? WHITE : BLACK);
+        text(42, y+14, item->name, i == selected ? DM_WHITE : DM_BLACK);
     }
 }
 static void draw_sidebar(void)
 {
-    fill(215, 42, 97, 129, LTGRAY);
-    frame(215, 42, 97, 129, CYAN);
-    fill(216, 43, 95, 17, DARKBLUE);
-    text(229, 55, "DESK", WHITE);
+    fill(215, 42, 97, 129, DM_LTGRAY);
+    frame(215, 42, 97, 129, DM_CYAN);
+    fill(216, 43, 95, 17, DM_DARKBLUE);
+    text(229, 55, "DESK", DM_WHITE);
     /* A simple notebook/page motif drawn from rectangles, no bitmap. */
-    fill(230, 68, 65, 42, WHITE);
-    frame(230, 68, 65, 42, BLACK);
-    fill(236, 72, 53, 8, CYAN);
-    line(238, 85, 285, 85, BLUE);
-    line(238, 92, 285, 92, BLUE);
-    line(238, 99, 275, 99, BLUE);
-    text(233, 127, "ELKS", BLUE);
-    text(223, 143, mode_name, BLUE);
-    text(223, 158, "V20  /  CF", BLACK);
+    fill(230, 68, 65, 42, DM_WHITE);
+    frame(230, 68, 65, 42, DM_BLACK);
+    fill(236, 72, 53, 8, DM_CYAN);
+    line(238, 85, 285, 85, DM_BLUE);
+    line(238, 92, 285, 92, DM_BLUE);
+    line(238, 99, 275, 99, DM_BLUE);
+    text(233, 127, "ELKS", DM_BLUE);
+    text(223, 143, mode_name, DM_BLUE);
+    text(223, 158, "V20  /  CF", DM_BLACK);
 }
 static void draw(void)
 {
-    fill(0, 0, DM_W, DM_H, BLUE);
-    fill(0, 0, DM_W, 18, DARKBLUE);
-    text(6, 14, "ELKS DeskMate", WHITE);
-    text(207, 14, "TANDY 1000 EX", CYAN);
+    fill(0, 0, DM_W, DM_H, DM_BLUE);
+    fill(0, 0, DM_W, 18, DM_DARKBLUE);
+    text(6, 14, "ELKS DeskMate", DM_WHITE);
+    text(207, 14, "TANDY 1000 EX", DM_CYAN);
     draw_tabs();
     draw_entries();
     draw_sidebar();
@@ -404,7 +404,7 @@ int main(int argc, char **argv)
     }
     window = GrNewWindowEx(GR_WM_PROPS_NODECORATE | GR_WM_PROPS_NORESIZE,
         "ELKS DeskMate", GR_ROOT_WINDOW_ID, (screen_cols-DM_W)/2, 0,
-        DM_W, DM_H, BLUE);
+        DM_W, DM_H, DM_BLUE);
     if (!window) {
         GrClose();
         return 1;
