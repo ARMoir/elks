@@ -36,10 +36,15 @@ static volatile int stopping;
  * to unwind. Reap finished application children from a normal, timed event
  * loop instead. This never closes the desktop when an application exits.
  */
+static int running_apps;
+
 static void reap_children(void)
 {
-    while (waitpid(-1, NULL, WNOHANG) > 0)
-        ;
+    int child;
+    while ((child = waitpid(-1, NULL, WNOHANG)) > 0) {
+        if (running_apps > 0)
+            --running_apps;
+    }
 }
 
 /* Also runs when the client library exits after losing its server connection. */
@@ -173,13 +178,18 @@ static void launch(int app)
     if (app < 0 || app >= 5) return;
     path = app_paths[menu_page][app];
     if (!path || access(path, F_OK)) return;
-    if (vfork() == 0) {
-        signal(SIGTERM, SIG_DFL);
-        signal(SIGINT, SIG_DFL);
-        signal(SIGHUP, SIG_DFL);
-        signal(SIGCHLD, SIG_DFL);
-        execl(path, path, (char *)NULL);
-        _exit(127);
+    {
+        int child = vfork();
+        if (child == 0) {
+            signal(SIGTERM, SIG_DFL);
+            signal(SIGINT, SIG_DFL);
+            signal(SIGHUP, SIG_DFL);
+            signal(SIGCHLD, SIG_DFL);
+            execl(path, path, (char *)NULL);
+            _exit(127);
+        }
+        if (child > 0)
+            ++running_apps;
     }
 }
 
@@ -250,7 +260,12 @@ int main(int argc, char **argv)
                  event.general.wid == window) quit(0);
         else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
             int key = event.keystroke.ch;
-            if (key == 'q' || key == 'Q' || key == MWKEY_ESCAPE) quit(0);
+            if (key == 'q' || key == 'Q' || key == MWKEY_ESCAPE) {
+                reap_children();
+                if (!running_apps)
+                    quit(0);
+                continue;
+            }
             if ((key == 'm' || key == 'M') && menu_page == 0)
                 choose(4);
             else if ((key == 'b' || key == 'B') && menu_page == 1)
