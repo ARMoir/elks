@@ -20,10 +20,15 @@ static volatile int stopping;
  * to unwind. Reap finished application children from a normal, timed event
  * loop instead. This never closes the desktop when an application exits.
  */
+static int running_apps;
+
 static void reap_children(void)
 {
-    while (waitpid(-1, NULL, WNOHANG) > 0)
-        ;
+    int child;
+    while ((child = waitpid(-1, NULL, WNOHANG)) > 0) {
+        if (running_apps > 0)
+            --running_apps;
+    }
 }
 
 /* Also runs when the client library exits after losing its server connection. */
@@ -351,13 +356,18 @@ static void launch_selected(void)
                 copy_status("This application is not installed");
                 break;
             }
-            if (vfork() == 0) {
-                signal(SIGTERM, SIG_DFL);
-                signal(SIGINT, SIG_DFL);
-                signal(SIGHUP, SIG_DFL);
-                signal(SIGCHLD, SIG_DFL);
-                execl(path, path, (char *)NULL);
-                _exit(127);
+            {
+                int child = vfork();
+                if (child == 0) {
+                    signal(SIGTERM, SIG_DFL);
+                    signal(SIGINT, SIG_DFL);
+                    signal(SIGHUP, SIG_DFL);
+                    signal(SIGCHLD, SIG_DFL);
+                    execl(path, path, (char *)NULL);
+                    _exit(127);
+                }
+                if (child > 0)
+                    ++running_apps;
             }
             copy_status("Close the app to return to DeskMate");
             break;
@@ -384,7 +394,17 @@ static void key_action(int key)
     } else if (key == MWKEY_ENTER || key == '\r' || key == '\n') {
         launch_selected();
     } else if (key == MWKEY_ESCAPE || key == 'q' || key == 'Q') {
-        quit(0);
+        /* A closing application's Q/Esc may reach the desktop if keyboard
+         * focus remains on the shell. Never treat it as session exit when
+         * applications are still alive. System > Return to Shell remains
+         * an intentional, explicit escape hatch.
+         */
+        reap_children();
+        if (running_apps > 0) {
+            copy_status("Close open app window before exiting");
+            draw_status();
+        } else
+            quit(0);
     }
 }
 static void mouse_action(int x, int y)
