@@ -61,7 +61,8 @@ If the GUI still unexpectedly returns to the shell, type:
   cat /root/NXEXIT.TXT
 The supervisor writes which process exited (server or desktop), its exit
 status and signal, only on unexpected shutdown. This makes a remaining
-Nano-X server crash distinguishable from a launcher failure. Q/Esc and
-Ctrl+A intentionally terminate the graphics session.
+Nano-X server crash distinguishable from a launcher failure. Q/Esc is
+a clean launcher exit. Ctrl+A intentionally stops Nano-X and may produce
+a `server exited code=0` entry, which is not a crash.
 Video color modes, cursor response, app-close behavior, and shell return
 require hardware retest.
