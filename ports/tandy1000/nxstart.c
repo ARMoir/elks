@@ -9,8 +9,22 @@
 #include <termios.h>
 #include "nano-X.h"
 
-static const char *names[] = { "1  Tetris", "2  Mines", "3  Clock", "4  Eyes", "Q  Return to console" };
-static const char *paths[] = { "/bin/nxtetris", "/bin/nxmine", "/bin/nxclock", "/bin/nxeyes" };
+/* Small two-page launcher. Page one keeps the original 1-4 shortcuts.
+ * The second page exposes programs that are already installed on the CF
+ * image, plus the new compact read-only Files browser.
+ */
+static const char *labels[2][7] = {
+    { "1  Tetris", "2  Mines", "3  Clock", "4  Eyes",
+      "M  More applications", "Q  Return to console", NULL },
+    { "1  Calculator", "2  Text editor", "3  Files",
+      "4  Terminal (test)", "5  File chooser",
+      "B  Back to games", "Q  Return to console" }
+};
+static const char *app_paths[2][5] = {
+    { "/bin/nxtetris", "/bin/nxmine", "/bin/nxclock", "/bin/nxeyes", NULL },
+    { "/bin/nxcalc", "/bin/nxedit", "/bin/nxfiles", "/bin/nxterm", "/bin/nxselect" }
+};
+static int menu_page;
 static GR_WINDOW_ID window;
 static GR_GC_ID gc;
 static pid_t server_pid, client_pid;
@@ -132,26 +146,49 @@ done:
 
 static void launch(int app)
 {
-    if (app == 4) quit(0);
-    if (app < 0 || app > 3 || access(paths[app], F_OK)) return;
+    const char *path;
+    if (app < 0 || app >= 5) return;
+    path = app_paths[menu_page][app];
+    if (!path || access(path, F_OK)) return;
     if (vfork() == 0) {
         signal(SIGTERM, SIG_DFL);
         signal(SIGINT, SIG_DFL);
         signal(SIGHUP, SIG_DFL);
         signal(SIGCHLD, SIG_DFL);
-        execl(paths[app], paths[app], (char *)NULL);
+        execl(path, path, (char *)NULL);
         _exit(127);
+    }
+}
+
+static void choose(int row)
+{
+    if (menu_page == 0 && row == 4) {
+        menu_page = 1;
+        GrClearWindow(window, GR_TRUE);
+    } else if (menu_page == 1 && row == 5) {
+        menu_page = 0;
+        GrClearWindow(window, GR_TRUE);
+    } else if ((menu_page == 0 && row == 5) ||
+               (menu_page == 1 && row == 6)) {
+        quit(0);
+    } else if (row >= 0 && row < 5) {
+        launch(row);
     }
 }
 
 static void draw(void)
 {
     int i;
-    GrText(window, gc, 10, 17, "Select an application", -1, GR_TFASCII);
-    for (i = 0; i < 5; ++i)
-        if (i == 4 || access(paths[i], F_OK) == 0)
-            GrText(window, gc, 12, 40 + 18*i, (void *)names[i], -1, GR_TFASCII);
-    GrText(window, gc, 10, 137, "Ctrl+A returns to console", -1, GR_TFASCII);
+    GrText(window, gc, 10, 14, menu_page ? "More ELKS applications" :
+        "Choose a game or app", -1, GR_TFASCII);
+    for (i = 0; i < 7 && labels[menu_page][i]; ++i) {
+        if (i < 5 && app_paths[menu_page][i] &&
+            access(app_paths[menu_page][i], F_OK) != 0)
+            continue;
+        GrText(window, gc, 12, 31 + 18*i,
+               (void *)labels[menu_page][i], -1, GR_TFASCII);
+    }
+    GrText(window, gc, 10, 158, "Ctrl+A returns to console", -1, GR_TFASCII);
 }
 
 int main(int argc, char **argv)
@@ -167,8 +204,8 @@ int main(int argc, char **argv)
     if (GrOpen() < 0) return 1;
     GrGetScreenInfo(&screen);
     window = GrNewWindowEx(GR_WM_PROPS_APPWINDOW | GR_WM_PROPS_NORESIZE,
-        "ELKS Tandy Apps", GR_ROOT_WINDOW_ID, (screen.cols - 250)/2, 12,
-        250, 148, GR_RGB(255,255,255));
+        "ELKS Tandy Apps", GR_ROOT_WINDOW_ID, (screen.cols - 250)/2, 2,
+        250, 171, GR_RGB(255,255,255));
     gc = GrNewGC();
     GrSetGCFont(gc, GrCreateFontEx(GR_FONT_SYSTEM_FIXED, 0, 0, NULL));
     GrSetGCForeground(gc, GR_RGB(0,0,0));
@@ -185,13 +222,18 @@ int main(int argc, char **argv)
         else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
             int key = event.keystroke.ch;
             if (key == 'q' || key == 'Q' || key == MWKEY_ESCAPE) quit(0);
-            if (key >= '1' && key <= '4') launch(key - '1');
+            if ((key == 'm' || key == 'M') && menu_page == 0)
+                choose(4);
+            else if ((key == 'b' || key == 'B') && menu_page == 1)
+                choose(5);
+            else if (key >= '1' && key <= '5')
+                choose(key - '1');
         } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
             GrGetWindowInfo(window, &info);
             GrRaiseWindow(info.parent != GR_ROOT_WINDOW_ID ? info.parent : window);
             GrSetFocus(window);
-            if (event.button.y >= 25 && event.button.y < 115)
-                launch((event.button.y - 25)/18);
+            if (event.button.y >= 17 && event.button.y < 17 + 7*18)
+                choose((event.button.y - 17)/18);
         }
     }
 }
