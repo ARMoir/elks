@@ -6,23 +6,27 @@ MOUSE_PORT=${MOUSE_PORT:-none}
 MOUSE_TYPE=${MOUSE_TYPE:-pc}
 # The V20 benefits from grouping queued mouse motion before drawing.
 MOUSE_BATCH=${MOUSE_BATCH:-12}
+NXCGA_UI=${NXCGA_UI:-deskmate}
 
 for option do
     case "$option" in
         mono|color|tandy) TANDY_MODE=$option ;;
         pc|ms) MOUSE_TYPE=$option ;;
+        classic) NXCGA_UI=classic ;;
+        deskmate|desk) NXCGA_UI=deskmate ;;
         mouse|com1) MOUSE_PORT=/dev/ttyS0 ;;
         com2) MOUSE_PORT=/dev/ttyS1 ;;
         none) MOUSE_PORT=none ;;
         -h|--help)
-            echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2] [pc|ms]'
+            echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2] [pc|ms] [deskmate|classic]'
             echo 'Modes: mono=640x200x2, color=320x200x4, tandy=320x200x16 (default)'
             echo 'Mouse: mouse=COM1 (/dev/ttyS0), none=keyboard-only (default)'
             echo 'Protocol: pc=5-byte Mouse Systems, ms=Microsoft; argument overrides MOUSE_TYPE'
             echo 'Lag tuning: MOUSE_BATCH=1 disables motion coalescing (default 12)'
+            echo 'Desktop: deskmate is default, classic restores the previous launcher'
             exit 0 ;;
         *) echo "Unknown option: $option" >&2
-           echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2] [pc|ms]' >&2
+           echo 'Usage: nxcga [mono|color|tandy] [mouse|none|com1|com2] [pc|ms] [deskmate|classic]' >&2
            exit 1 ;;
     esac
 done
@@ -32,15 +36,23 @@ case "$TANDY_MODE" in
     color|tandy) unset MONOMODE ;;
     *) echo "Invalid TANDY_MODE: $TANDY_MODE" >&2; exit 1 ;;
 esac
-export TANDY_MODE MOUSE_PORT MOUSE_TYPE MOUSE_BATCH
+case "$NXCGA_UI" in
+    deskmate|classic) ;;
+    *) echo "Invalid NXCGA_UI: $NXCGA_UI" >&2; exit 1 ;;
+esac
+export TANDY_MODE MOUSE_PORT MOUSE_TYPE MOUSE_BATCH NXCGA_UI
 
 # Safe parser test hook; does not launch graphics when set.
 if [ "${NXCGA_PRINT_CONFIG:-0}" = 1 ]; then
-    printf 'mode=%s mouse=%s protocol=%s\n' "$TANDY_MODE" "$MOUSE_PORT" "$MOUSE_TYPE"
+    printf 'mode=%s mouse=%s protocol=%s ui=%s\n' "$TANDY_MODE" "$MOUSE_PORT" "$MOUSE_TYPE" "$NXCGA_UI"
     exit 0
 fi
 
-/bin/nxstart
+if [ "$NXCGA_UI" = classic ]; then
+    /bin/nxclassic
+else
+    /bin/nxstart
+fi
 status=$?
 /bin/stty sane
 exit "$status"

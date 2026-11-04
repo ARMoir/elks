@@ -187,7 +187,6 @@ static const DMItem menus[DM_CATS][DM_ITEMS] = {
 static int category;
 static int selected;
 static int screen_cols;
-static int screen_colors;
 static char status_line[54] = "Choose an accessory with mouse or keyboard";
 static const char *mode_name = "TANDY 16";
 
@@ -394,7 +393,6 @@ int main(int argc, char **argv)
 
     GrGetScreenInfo(&screen);
     screen_cols = screen.cols;
-    screen_colors = screen.ncolors;
     mode = getenv("TANDY_MODE");
     if (mode && !strcmp(mode, "mono"))
         mode_name = "MONO 2";

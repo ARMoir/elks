@@ -5,7 +5,7 @@ partition layout, configuration and unrelated files.
 
 With ELKS shut down and the CF card in your PC's reader, copy all three files
 from the ZIP's bin folder into the CF card's BIN folder:
-  NXSTART, NANO-X, NXCGA, NXTETRIS,
+  NXSTART, NXCLASSIC, NANO-X, NXCGA, NXTETRIS,
   NXCALC, NXEDIT, NXSELECT, NXTERM, NXFILES
 Overwrite the old versions. Copy the files as-is; do not decompress them.
 The update also contains APPS.TXT; copy it to the card's ROOT folder
@@ -36,12 +36,20 @@ instead of the all-white CGA fallback. Tetris also adapts to 4-color
 and 2-color graphics, and the 4-color CGA palette is corrected. The
 NXTETRIS executable must be replaced along with NANO-X for this update.
 
-The launcher now has a second page: M opens more applications. Calculator,
-Editor, Files (new read-only graphical browser), experimental Terminal and
-File Chooser are available there. B goes back, Q exits, and 1-4 on the
-first page still open the original games. The expanded launcher remains
-keyboard-usable when the serial mouse is disabled. The additional windows
-are smaller to fit the 320x200 Tandy display and require hardware testing.
+New default: ELKS DeskMate, a 320x200 DeskMate-inspired shell with blue
+workspace, light menu bar and original notebook-style panel. Use P/F/T/G/S
+for Programs, Files, Tools, Games and System. Press 1-5 or Up/Down + Enter
+to run applications; Q or Esc returns to the console. Mouse clicks work.
+No animation or frequent timer redraws are used on the V20.
+
+Old launcher preserved in NXCLASSIC: run
+  nxcga tandy mouse pc classic
+to restore its games menu and M for more. You can also use
+  nxcga tandy none classic
+with no serial mouse. Video, mouse protocol and UI are separate options.
+Copy NXCLASSIC along with NXSTART to make this fallback available.
+The new DeskMate app menu and alternative classic launcher require hardware
+testing.
 
 Nano-X now uses persistent server mode and the launcher reaps child processes
 from its event loop, not from the SIGCHLD handler, so closing an individual

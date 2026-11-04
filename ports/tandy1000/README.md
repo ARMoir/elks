@@ -91,11 +91,18 @@ There is no VGA or PS/2 CDE desktop in this image. Graphics are opt-in.
 The old monochrome fallback is still available and unaffected by mouse choice.
 The apps remain sized for 200-line displays. Color modes and the screen
 restore path need confirmation on the physical Tandy.
-Nano-X, Tetris, Mines, Clock and Eyes are included with a small two-page
-launcher sized for the 200-line display. The first page preserves the original
-games and shortcuts. Press M for Calculator, Editor, Files, experimental
-Terminal and File Chooser; B returns to the first page. 1-5 activate
-applications on the current page, and Q still exits to the console.
+The default Nano-X shell is now **ELKS DeskMate**, a compact original
+interface inspired by Tandy Personal DeskMate. It uses a blue workspace,
+a light menu band, a notebook panel and five keyboard/mouse-driven menus:
+Programs (P), Files (F), Tools (T), Games (G), and System (S).
+Select an entry using keys 1-5, arrow keys and Enter, or click its row.
+Q/Esc returns to the text console. The System menu includes Help and About.
+
+The previous simple two-page launcher remains installed separately
+as `/bin/nxclassic`, and is started with `nxcga tandy mouse pc classic`.
+This option preserves the old game shortcuts and M to open extra apps.
+The choice of desktop is independent of graphics mode, mouse protocol
+and whether a serial mouse is enabled.
 The graphical Files browser is a read-only preview tool ported from
 the earlier IBM PS/2 build, adapted to fit 320x200, with keyboard and mouse
 support. Calculator, editor, terminal and file chooser also have Tandy-sized
@@ -183,8 +190,8 @@ Emulation can check boot, different BIOS geometries, console apps and CGA
 graphics. The build verifies that color Tetris sources and its executable
 are present in the image. Actual seven-color output still needs visual
 confirmation on Tandy hardware. CF boot, CGA Tetris and usable game speed have been confirmed on the
-real V20-equipped Tandy. The expanded launcher, compact Files browser and other graphical app window
-sizes require real-hardware testing. The revised Ctrl+A return to the shell
+real V20-equipped Tandy. The new DeskMate shell, fallback classic launcher, compact Files browser and
+graphical app window sizes require real-hardware testing. The revised Ctrl+A return to the shell
 needs retesting
 there; physical serial-mouse movement is confirmed in 5-byte `pc` mode but
 lag remains to be retested with motion coalescing. The new 4-color and

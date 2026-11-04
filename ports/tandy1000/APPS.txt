@@ -6,14 +6,15 @@ NANO-X GRAPHICS:
   nxcga color none       4-color CGA desktop
   nxcga mono none        Black-and-white desktop
 
-  Launcher page one: 1 Tetris, 2 Mines, 3 Clock, 4 Eyes, M More,
-                     Q Return to console.
-  Launcher page two: 1 Calculator (nxcalc)
-                     2 Text editor (nxedit)
-                     3 Files (nxfiles, read-only file manager/viewer)
-                     4 Terminal (nxterm, experimental on V20)
-                     5 File chooser (nxselect, outputs chosen path)
-                     B Back, Q Return to console.
+  Default is ELKS DeskMate, an original Tandy-style desktop.
+  Menus: P Programs, F Files, T Tools, G Games, S System.
+  Navigate: keys 1-5, Up/Down then Enter, or use serial mouse.
+  Q or Esc: return to console; close an app to return to DeskMate.
+  System includes Help, About and instructions for the classic UI.
+
+  Classic launcher still available:
+  nxcga tandy mouse pc classic
+  Classic: 1-4 games, M for more apps, B back, Q exit.
 
   Files browser: use the mouse or press 1-5 to open the visible
   entries. U goes up or back, P/N switch pages, Q closes.
