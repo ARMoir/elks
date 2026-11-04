@@ -239,10 +239,12 @@ int main(int argc, char **argv)
     GrSetFocus(window);
     for (;;) {
         reap_children();
-        /* A timeout lets us reap exited apps without a SIGCHLD signal
-         * interrupting the socket read. No redraw is done on timeout.
+        /* A normal application close exposes its former window area,
+         * allowing us to reap children on the following event. Keep this
+         * blocking: periodic GetNextEventTimeout can queue redundant socket
+         * requests and burden the V20.
          */
-        GrGetNextEventTimeout(&event, 500);
+        GrGetNextEvent(&event);
         if (event.type == GR_EVENT_TYPE_EXPOSURE) draw();
         else if (event.type == GR_EVENT_TYPE_CLOSE_REQ &&
                  event.general.wid == window) quit(0);
