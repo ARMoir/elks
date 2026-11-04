@@ -133,11 +133,18 @@ or close its window. Close app windows first to retain their game progress.
 The session manager owns the server and launcher, waits for the session to end,
 restores terminal settings, then clears and homes the text console before the
 shell resumes. The server runs in persistent mode so that closing a game,
-clock or Eyes window does not shut down Nano-X. Child exits are reaped from
-the launcher event loop rather than from its SIGCHLD handler. The launcher
-should remain visible after an application exits; choosing Return to console
-or pressing Ctrl+A intentionally ends the session. These changes need
-confirmation on the real Tandy.
+clock or Eyes window does not shut down Nano-X. The DeskMate launcher no longer installs a SIGCHLD handler, because child
+exit signals may interrupt Nano-X client socket calls on ELKS. Finished
+application children are reaped on normal GUI events instead. A window-close
+event is accepted as a session shutdown only when it addresses the desktop's
+own window. Closing a game or utility should not return to the shell.
+
+If the graphical session still ends unexpectedly, the supervisor appends a
+short diagnostic to /root/NXEXIT.TXT, identifying whether nano-x (server) or
+the desktop process exited and its exit code or signal. Run
+'cat /root/NXEXIT.TXT' at the ELKS shell after a failure and report the output.
+Normal Q/Esc or Ctrl+A exits do not create a new diagnostic entry.
+The application-close fix still requires confirmation on the real Tandy.
 Tetris uses N for a new game, J/K to move, D/F to rotate, Space to drop,
 P/C to pause/continue and Q to close. Its seven tetromino shapes now have
 distinct cyan, blue, yellow, green, magenta, red and white colors in native
