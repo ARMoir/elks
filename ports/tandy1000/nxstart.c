@@ -14,26 +14,16 @@ static GR_GC_ID gc;
 static pid_t server_pid, client_pid;
 static volatile int stopping;
 
-/* Defer waitpid until the ordinary event loop. In particular, never reap a
- * child from the signal handler while Nano-X has a client socket operation
- * in progress. A child exit is not a request to terminate the desktop.
+/* Do not install a SIGCHLD handler in the Nano-X GUI process.
+ * On ELKS, the notification can interrupt the blocking client socket/event
+ * wait during GrClose() in an application and may cause the entire session
+ * to unwind. Reap finished application children from a normal, timed event
+ * loop instead. This never closes the desktop when an application exits.
  */
-static volatile int reap_pending;
-
-static void reap(int sig)
-{
-    (void)sig;
-    reap_pending = 1;
-    signal(SIGCHLD, reap);
-}
-
 static void reap_children(void)
 {
-    if (reap_pending) {
-        reap_pending = 0;
-        while (waitpid(-1, NULL, WNOHANG) > 0)
-            ;
-    }
+    while (waitpid(-1, NULL, WNOHANG) > 0)
+        ;
 }
 
 /* Also runs when the client library exits after losing its server connection. */
@@ -386,7 +376,7 @@ int main(int argc, char **argv)
     if (argc != 2 || strcmp(argv[1], "--client")) return run_session();
     if (setsid() < 0) return 1;
     atexit(cleanup_clients);
-    signal(SIGCHLD, reap);
+    signal(SIGCHLD, SIG_DFL);
     signal(SIGTERM, quit);
     if (GrOpen() < 0) return 1;
 
@@ -418,11 +408,15 @@ int main(int argc, char **argv)
 
     for (;;) {
         reap_children();
-        GrGetNextEvent(&event);
+        /* A timeout lets us reap exited apps without a SIGCHLD signal
+         * interrupting the socket read. No redraw is done on timeout.
+         */
+        GrGetNextEventTimeout(&event, 500);
         if (event.type == GR_EVENT_TYPE_EXPOSURE) {
             if (event.exposure.wid == window) draw();
         } else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) {
-            quit(0);
+            /* Other clients' windows must never terminate this shell. */
+            if (event.general.wid == window) quit(0);
         } else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
             if (event.keystroke.wid == window) key_action(event.keystroke.ch);
         } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
