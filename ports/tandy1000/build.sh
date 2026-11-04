@@ -37,7 +37,7 @@ grep -q 'block_colours\[state->next_shape.type\]' "$mw/src/demos/nanox/nxtetris.
 
 sed -i '/^CFLAGS += -DCONFIG_HW_VGA=1$/d' "$mw/src/demos/nanox/Makefile.elks"
 cp ports/tandy1000/nxstart.c "$mw/src/demos/nanox/nxstart.c"
-cp ports/tandy1000/nxold.c "$mw/src/demos/nanox/nxold.c"
+cp ports/tandy1000/nxclassic.c "$mw/src/demos/nanox/nxold.c"
 cp ports/nxeyes/nxeyes.c "$mw/src/demos/nanox/nxeyes.c"
 # The selected Microwindows revision defaults to a VGA-sized application window.
 # These edits are local to the Tandy image and keep windows within 320x200.
