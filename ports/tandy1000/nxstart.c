@@ -9,22 +9,6 @@
 #include <termios.h>
 #include "nano-X.h"
 
-/* Small two-page launcher. Page one keeps the original 1-4 shortcuts.
- * The second page exposes programs that are already installed on the CF
- * image, plus the new compact read-only Files browser.
- */
-static const char *labels[2][7] = {
-    { "1  Tetris", "2  Mines", "3  Clock", "4  Eyes",
-      "M  More applications", "Q  Return to console", NULL },
-    { "1  Calculator", "2  Text editor", "3  Files",
-      "4  Terminal (test)", "5  File chooser",
-      "B  Back to games", "Q  Return to console" }
-};
-static const char *app_paths[2][5] = {
-    { "/bin/nxtetris", "/bin/nxmine", "/bin/nxclock", "/bin/nxeyes", NULL },
-    { "/bin/nxcalc", "/bin/nxedit", "/bin/nxfiles", "/bin/nxterm", "/bin/nxselect" }
-};
-static int menu_page;
 static GR_WINDOW_ID window;
 static GR_GC_ID gc;
 static pid_t server_pid, client_pid;
@@ -144,51 +128,254 @@ done:
     return result;
 }
 
-static void launch(int app)
+
+/*
+ * ELKS DeskMate, a lightweight Personal DeskMate-inspired shell for the
+ * Tandy 1000 EX. This is an original interface, not Tandy DeskMate code.
+ *
+ * No bitmap resources, external fonts, continuous refresh or animation:
+ * V20/CGA hardware is redrawn only after exposure and direct input.
+ * The previous simple launcher is preserved as /bin/nxclassic.
+ */
+#define DM_W 320
+#define DM_H 200
+#define DM_CATS 5
+#define DM_ITEMS 5
+
+#define BLUE       GR_RGB(0, 0, 170)
+#define DARKBLUE   GR_RGB(0, 0, 85)
+#define CYAN       GR_RGB(0, 170, 170)
+#define WHITE      GR_RGB(255, 255, 255)
+#define BLACK      GR_RGB(0, 0, 0)
+#define LTGRAY     GR_RGB(192, 192, 192)
+#define MAGENTA    GR_RGB(170, 0, 170)
+
+enum { ACTION_RUN, ACTION_INFO, ACTION_HELP, ACTION_CONSOLE, ACTION_CLASSIC, ACTION_TEXTGAMES };
+typedef struct {
+    const char *name;
+    const char *exec;
+    unsigned char action;
+} DMItem;
+static const char *tabs[DM_CATS] = { "Programs", "Files", "Tools", "Games", "System" };
+static const DMItem menus[DM_CATS][DM_ITEMS] = {
+    {{"Text Writer", "/bin/nxedit", ACTION_RUN},
+     {"Calculator", "/bin/nxcalc", ACTION_RUN},
+     {"File Browser", "/bin/nxfiles", ACTION_RUN},
+     {"Terminal", "/bin/nxterm", ACTION_RUN},
+     {"File Select", "/bin/nxselect", ACTION_RUN}},
+    {{"Browse Files", "/bin/nxfiles", ACTION_RUN},
+     {"Text Writer", "/bin/nxedit", ACTION_RUN},
+     {"File Select", "/bin/nxselect", ACTION_RUN},
+     {"Terminal", "/bin/nxterm", ACTION_RUN},
+     {"How to Save", NULL, ACTION_HELP}},
+    {{"Calculator", "/bin/nxcalc", ACTION_RUN},
+     {"Desk Clock", "/bin/nxclock", ACTION_RUN},
+     {"Mouse Eyes", "/bin/nxeyes", ACTION_RUN},
+     {"Terminal", "/bin/nxterm", ACTION_RUN},
+     {"File Browser", "/bin/nxfiles", ACTION_RUN}},
+    {{"Tetris", "/bin/nxtetris", ACTION_RUN},
+     {"Mines", "/bin/nxmine", ACTION_RUN},
+     {"Mouse Eyes", "/bin/nxeyes", ACTION_RUN},
+     {"Desk Clock", "/bin/nxclock", ACTION_RUN},
+     {"Console Games", NULL, ACTION_TEXTGAMES}},
+    {{"About ELKS", NULL, ACTION_INFO},
+     {"Keyboard Help", NULL, ACTION_HELP},
+     {"Classic Launcher", NULL, ACTION_CLASSIC},
+     {"File Browser", "/bin/nxfiles", ACTION_RUN},
+     {"Return to Shell", NULL, ACTION_CONSOLE}}
+};
+static int category;
+static int selected;
+static int screen_cols;
+static int screen_colors;
+static char status_line[54] = "Choose an accessory with mouse or keyboard";
+static const char *mode_name = "TANDY 16";
+
+/* Screen coordinates are relative to the 320x200 undecorated panel. */
+static void fill(int x, int y, int w, int h, GR_COLOR c)
 {
-    const char *path;
-    if (app < 0 || app >= 5) return;
-    path = app_paths[menu_page][app];
-    if (!path || access(path, F_OK)) return;
-    if (vfork() == 0) {
-        signal(SIGTERM, SIG_DFL);
-        signal(SIGINT, SIG_DFL);
-        signal(SIGHUP, SIG_DFL);
-        signal(SIGCHLD, SIG_DFL);
-        execl(path, path, (char *)NULL);
-        _exit(127);
+    GrSetGCForeground(gc, c);
+    GrFillRect(window, gc, x, y, w, h);
+}
+static void line(int x1, int y1, int x2, int y2, GR_COLOR c)
+{
+    GrSetGCForeground(gc, c);
+    GrLine(window, gc, x1, y1, x2, y2);
+}
+static void text(int x, int y, const char *s, GR_COLOR c)
+{
+    GrSetGCForeground(gc, c);
+    GrText(window, gc, x, y, (void *)s, -1, GR_TFASCII);
+}
+static void frame(int x, int y, int w, int h, GR_COLOR c)
+{
+    line(x, y, x+w-1, y, c);
+    line(x, y, x, y+h-1, c);
+    line(x+w-1, y, x+w-1, y+h-1, c);
+    line(x, y+h-1, x+w-1, y+h-1, c);
+}
+static void copy_status(const char *s)
+{
+    strncpy(status_line, s, sizeof(status_line)-1);
+    status_line[sizeof(status_line)-1] = 0;
+}
+static void draw_status(void)
+{
+    fill(0, 177, DM_W, 23, DARKBLUE);
+    line(0, 176, DM_W-1, 176, CYAN);
+    text(8, 187, status_line, WHITE);
+    text(8, 198, "P F T G S = menus   1-5 = run   Esc = exit", CYAN);
+}
+static void draw_tabs(void)
+{
+    int i, x;
+    fill(0, 18, DM_W, 19, LTGRAY);
+    for (i=0; i<DM_CATS; ++i) {
+        x = 4 + 63*i;
+        if (category == i) {
+            fill(x, 20, 61, 16, CYAN);
+            frame(x, 20, 61, 16, DARKBLUE);
+            text(x+5, 32, tabs[i], BLACK);
+        } else
+            text(x+5, 32, tabs[i], BLACK);
     }
 }
-
-static void choose(int row)
+static void draw_entries(void)
 {
-    if (menu_page == 0 && row == 4) {
-        menu_page = 1;
-        GrClearWindow(window, GR_TRUE);
-    } else if (menu_page == 1 && row == 5) {
-        menu_page = 0;
-        GrClearWindow(window, GR_TRUE);
-    } else if ((menu_page == 0 && row == 5) ||
-               (menu_page == 1 && row == 6)) {
-        quit(0);
-    } else if (row >= 0 && row < 5) {
-        launch(row);
+    int i, y;
+    const DMItem *item;
+    fill(8, 42, 201, 129, WHITE);
+    frame(8, 42, 201, 129, CYAN);
+    fill(9, 43, 199, 17, DARKBLUE);
+    text(18, 55, tabs[category], WHITE);
+    for (i=0; i<DM_ITEMS; ++i) {
+        item = &menus[category][i];
+        y = 61 + i*21;
+        if (i == selected)
+            fill(12, y, 193, 20, BLUE);
+        else
+            fill(12, y, 193, 20, WHITE);
+        {
+            char index[4];
+            index[0] = '1' + i;
+            index[1] = '.';
+            index[2] = 0;
+            text(19, y+14, index, i == selected ? WHITE : BLACK);
+        }
+        text(42, y+14, item->name, i == selected ? WHITE : BLACK);
     }
 }
-
+static void draw_sidebar(void)
+{
+    fill(215, 42, 97, 129, LTGRAY);
+    frame(215, 42, 97, 129, CYAN);
+    fill(216, 43, 95, 17, DARKBLUE);
+    text(229, 55, "DESK", WHITE);
+    /* A simple notebook/page motif drawn from rectangles, no bitmap. */
+    fill(230, 68, 65, 42, WHITE);
+    frame(230, 68, 65, 42, BLACK);
+    fill(236, 72, 53, 8, CYAN);
+    line(238, 85, 285, 85, BLUE);
+    line(238, 92, 285, 92, BLUE);
+    line(238, 99, 275, 99, BLUE);
+    text(233, 127, "ELKS", BLUE);
+    text(223, 143, mode_name, BLUE);
+    text(223, 158, "V20  /  CF", BLACK);
+}
 static void draw(void)
 {
-    int i;
-    GrText(window, gc, 10, 14, menu_page ? "More ELKS applications" :
-        "Choose a game or app", -1, GR_TFASCII);
-    for (i = 0; i < 7 && labels[menu_page][i]; ++i) {
-        if (i < 5 && app_paths[menu_page][i] &&
-            access(app_paths[menu_page][i], F_OK) != 0)
-            continue;
-        GrText(window, gc, 12, 31 + 18*i,
-               (void *)labels[menu_page][i], -1, GR_TFASCII);
+    fill(0, 0, DM_W, DM_H, BLUE);
+    fill(0, 0, DM_W, 18, DARKBLUE);
+    text(6, 14, "ELKS DeskMate", WHITE);
+    text(207, 14, "TANDY 1000 EX", CYAN);
+    draw_tabs();
+    draw_entries();
+    draw_sidebar();
+    draw_status();
+}
+
+static void change_category(int to)
+{
+    if (to<0 || to>=DM_CATS) return;
+    category = to;
+    selected = 0;
+    draw_tabs();
+    draw_entries();
+    copy_status("Select 1-5 or click an accessory");
+    draw_status();
+}
+static void launch_selected(void)
+{
+    const DMItem *item = &menus[category][selected];
+    const char *path = item->exec;
+    switch (item->action) {
+        case ACTION_INFO:
+            copy_status("ELKS DeskMate  -  Tandy V20 / Nano-X");
+            break;
+        case ACTION_HELP:
+            copy_status("Menus: P/F/T/G/S  Arrows: move  Enter: run");
+            break;
+        case ACTION_CLASSIC:
+            copy_status("From shell: nxcga tandy mouse pc classic");
+            break;
+        case ACTION_TEXTGAMES:
+            copy_status("Exit to shell: invaders, ttypong, advent");
+            break;
+        case ACTION_CONSOLE:
+            quit(0);
+            return;
+        case ACTION_RUN:
+            if (!path || access(path, F_OK) != 0) {
+                copy_status("Application missing from this CF image");
+                break;
+            }
+            if (vfork() == 0) {
+                signal(SIGTERM, SIG_DFL);
+                signal(SIGINT, SIG_DFL);
+                signal(SIGHUP, SIG_DFL);
+                signal(SIGCHLD, SIG_DFL);
+                execl(path, path, (char *)NULL);
+                _exit(127);
+            }
+            copy_status("Program launched; close it to return here");
+            break;
     }
-    GrText(window, gc, 10, 158, "Ctrl+A returns to console", -1, GR_TFASCII);
+    draw_status();
+}
+static void key_action(int key)
+{
+    if (key == 'p' || key == 'P') change_category(0);
+    else if (key == 'f' || key == 'F') change_category(1);
+    else if (key == 't' || key == 'T') change_category(2);
+    else if (key == 'g' || key == 'G') change_category(3);
+    else if (key == 's' || key == 'S') change_category(4);
+    else if (key >= '1' && key <= '5') {
+        selected = key-'1';
+        draw_entries();
+        launch_selected();
+    } else if (key == MWKEY_UP) {
+        selected = (selected + DM_ITEMS - 1) % DM_ITEMS;
+        draw_entries();
+    } else if (key == MWKEY_DOWN) {
+        selected = (selected + 1) % DM_ITEMS;
+        draw_entries();
+    } else if (key == MWKEY_ENTER || key == '\r' || key == '\n') {
+        launch_selected();
+    } else if (key == MWKEY_ESCAPE || key == 'q' || key == 'Q') {
+        quit(0);
+    }
+}
+static void mouse_action(int x, int y)
+{
+    if (y>=19 && y<38) {
+        if (x>=4 && x<319) change_category((x-4)/63);
+    } else if (x>=12 && x<206 && y>=61 && y<166) {
+        selected = (y-61)/21;
+        if (selected>=0 && selected<DM_ITEMS) {
+            draw_entries();
+            launch_selected();
+        }
+    }
 }
 
 int main(int argc, char **argv)
@@ -196,44 +383,57 @@ int main(int argc, char **argv)
     GR_SCREEN_INFO screen;
     GR_EVENT event;
     GR_WINDOW_INFO info;
+    const char *mode;
+
     if (argc != 2 || strcmp(argv[1], "--client")) return run_session();
     if (setsid() < 0) return 1;
     atexit(cleanup_clients);
     signal(SIGCHLD, reap);
     signal(SIGTERM, quit);
     if (GrOpen() < 0) return 1;
+
     GrGetScreenInfo(&screen);
-    window = GrNewWindowEx(GR_WM_PROPS_APPWINDOW | GR_WM_PROPS_NORESIZE,
-        "ELKS Tandy Apps", GR_ROOT_WINDOW_ID, (screen.cols - 250)/2, 2,
-        250, 171, GR_RGB(255,255,255));
+    screen_cols = screen.cols;
+    screen_colors = screen.ncolors;
+    mode = getenv("TANDY_MODE");
+    if (mode && !strcmp(mode, "mono"))
+        mode_name = "MONO 2";
+    else if (mode && !strcmp(mode, "color"))
+        mode_name = "CGA 4";
+    if (screen_cols < DM_W || screen.rows < DM_H) {
+        GrClose();
+        return 1;
+    }
+    window = GrNewWindowEx(GR_WM_PROPS_NODECORATE | GR_WM_PROPS_NORESIZE,
+        "ELKS DeskMate", GR_ROOT_WINDOW_ID, (screen_cols-DM_W)/2, 0,
+        DM_W, DM_H, BLUE);
+    if (!window) {
+        GrClose();
+        return 1;
+    }
     gc = GrNewGC();
     GrSetGCFont(gc, GrCreateFontEx(GR_FONT_SYSTEM_FIXED, 0, 0, NULL));
-    GrSetGCForeground(gc, GR_RGB(0,0,0));
     GrSetGCUseBackground(gc, GR_FALSE);
     GrSelectEvents(window, GR_EVENT_MASK_EXPOSURE | GR_EVENT_MASK_KEY_DOWN |
         GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_CLOSE_REQ);
     GrMapWindow(window);
     GrSetFocus(window);
+
     for (;;) {
         reap_children();
         GrGetNextEvent(&event);
-        if (event.type == GR_EVENT_TYPE_EXPOSURE) draw();
-        else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) quit(0);
-        else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
-            int key = event.keystroke.ch;
-            if (key == 'q' || key == 'Q' || key == MWKEY_ESCAPE) quit(0);
-            if ((key == 'm' || key == 'M') && menu_page == 0)
-                choose(4);
-            else if ((key == 'b' || key == 'B') && menu_page == 1)
-                choose(5);
-            else if (key >= '1' && key <= '5')
-                choose(key - '1');
+        if (event.type == GR_EVENT_TYPE_EXPOSURE) {
+            if (event.exposure.wid == window) draw();
+        } else if (event.type == GR_EVENT_TYPE_CLOSE_REQ) {
+            quit(0);
+        } else if (event.type == GR_EVENT_TYPE_KEY_DOWN) {
+            if (event.keystroke.wid == window) key_action(event.keystroke.ch);
         } else if (event.type == GR_EVENT_TYPE_BUTTON_DOWN) {
+            if (event.button.wid != window) continue;
             GrGetWindowInfo(window, &info);
             GrRaiseWindow(info.parent != GR_ROOT_WINDOW_ID ? info.parent : window);
             GrSetFocus(window);
-            if (event.button.y >= 17 && event.button.y < 17 + 7*18)
-                choose((event.button.y - 17)/18);
+            mouse_action(event.button.x, event.button.y);
         }
     }
 }
