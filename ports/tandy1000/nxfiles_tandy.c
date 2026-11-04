@@ -206,9 +206,11 @@ static void redraw(void)
                 rect(18, y+3, 9, 12, GR_COLOR_DARKGRAY);
                 rect(20, y+5, 5, 8, GR_COLOR_WHITE);
             }
-            strncpy(b, names[i], 29);
-            b[29] = '\0';
-            text(40, y+13, b, GR_COLOR_BLACK);
+            strncpy(b, names[i], 27);
+            b[27] = '\0';
+            { char num[3]; num[0] = '1' + row; num[1] = ')'; num[2] = 0;
+              text(32, y+13, num, GR_COLOR_BLACK); }
+            text(53, y+13, b, GR_COLOR_BLACK);
             line(12, y+RH-1, W-13, y+RH-1, GR_COLOR_LIGHTGRAY);
         }
     }
@@ -266,6 +268,23 @@ int main(void)
                 redraw();
         } else if (e.type == GR_EVENT_TYPE_CLOSE_REQ) {
             break;
+        } else if (e.type == GR_EVENT_TYPE_KEY_DOWN) {
+            int key = e.keystroke.ch;
+            if (key == 'q' || key == 'Q' || key == 27) break;
+            if (key == 'u' || key == 'U' || key == 'b' || key == 'B') {
+                if (viewing) viewing = 0;
+                else { parent_directory(); scan_directory(); }
+                redraw();
+            } else if (key == 'p' || key == 'P') {
+                if (viewing && page > 0) --page;
+                else if (!viewing && offset >= ROWS) offset -= ROWS;
+                redraw();
+            } else if (key == 'n' || key == 'N') {
+                if (viewing) ++page;
+                else if (offset + ROWS < nfiles) offset += ROWS;
+                redraw();
+            } else if (!viewing && key >= '1' && key <= '5')
+                select_entry(offset + key - '1');
         } else if (e.type == GR_EVENT_TYPE_BUTTON_DOWN &&
                    e.button.wid == win && screen_ready) {
             activate_file_window();
