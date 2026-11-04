@@ -38,7 +38,8 @@ grep -q 'block_colours\[state->next_shape.type\]' "$mw/src/demos/nanox/nxtetris.
 sed -i '/^CFLAGS += -DCONFIG_HW_VGA=1$/d' "$mw/src/demos/nanox/Makefile.elks"
 cp ports/tandy1000/nxstart.c "$mw/src/demos/nanox/nxstart.c"
 cp ports/nxeyes/nxeyes.c "$mw/src/demos/nanox/nxeyes.c"
-# Keep the additional GUI applications usable within 320x200.
+# The selected Microwindows revision defaults to a VGA-sized application window.
+# These edits are local to the Tandy image and keep windows within 320x200.
 sed -i 's/^#define WIN_H  200$/#define WIN_H  156/' "$mw/src/demos/nanox/nxcalc.c"
 sed -i 's/^#define COLS            80$/#define COLS            36/' "$mw/src/demos/nanox/nxedit.c"
 sed -i 's/^#define LINES           25$/#define LINES           12/' "$mw/src/demos/nanox/nxedit.c"
@@ -46,7 +47,10 @@ sed -i 's/^#define VISIBLE_ROWS     10$/#define VISIBLE_ROWS     5/' "$mw/src/de
 sed -i '/^#if ELKS$/,/^#else$/s/^#define stdcol 80$/#define stdcol 36/' "$mw/src/demos/nanox/nxterm.c"
 sed -i '/^#if ELKS$/,/^#else$/s/^#define stdrow 25$/#define stdrow 12/' "$mw/src/demos/nanox/nxterm.c"
 cp ports/tandy1000/nxfiles_tandy.c "$mw/src/demos/nanox/nxfiles.c"
-grep -q '^#define WIN_H  156
+grep -qF '#define WIN_H  156' "$mw/src/demos/nanox/nxcalc.c"
+grep -qF '#define COLS            36' "$mw/src/demos/nanox/nxedit.c"
+grep -qF '#define VISIBLE_ROWS     5' "$mw/src/demos/nanox/nxselect.c"
+grep -qF '#define stdrow 12' "$mw/src/demos/nanox/nxterm.c"
 cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
 
 $(BIN)nxeyes: nxeyes.o $(NXLIB)
@@ -105,219 +109,4 @@ cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
 mkdir -p image/tandy-console-update/bin
 cp image/tandy-verify/nxstart image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-verify/nxcalc image/tandy-verify/nxedit image/tandy-verify/nxselect image/tandy-verify/nxterm image/tandy-verify/nxfiles image/tandy-console-update/bin/
 cp ports/tandy1000/APPS.txt image/tandy-console-update/APPS.TXT
-cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt
- "$mw/src/demos/nanox/nxcalc.c"
-grep -q '^#define COLS            36
-cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
-
-$(BIN)nxeyes: nxeyes.o $(NXLIB)
-	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-MAKE
-make -C "$mw/src" -f Makefile.elks SCREEN_CGA=y
-make -C "$mw/src/demos/nanox" -f Makefile.elks ../../bin/nxeyes
-
-# Stage hardware-specific defaults without editing the shared rootfs template.
-template="$TOPDIR/image/tandy-template"
-cp -a elkscmd/rootfs_template "$template"
-cp ports/tandy1000/bootopts "$template/bootopts"
-cp ports/tandy1000/login.profile "$template/root/.profile"
-printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE=pc\nexport MOUSE_PORT=none\n' >> "$template/etc/profile"
-# The EX has no AT CMOS RTC. Its serial ports are reserved for mouse/terminal use.
-sed -i '/^clock -s /d' "$template/etc/rc.sys"
-printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"
-
-# Fit the target 31,360-sector card using 31 complete reference cylinders.
-# Reserve its initial track for the MBR. Use a 1 KiB-aligned partition size.
-make -C image TEMPLATE_DIR="$template" \
-    FAT_MKFSOPTS='-T 31184 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
-cp ports/tandy1000/nxcga target/bin/nxcga
-chmod 755 target/bin/nxcga
-mcopy -o -i image/hd.img target/bin/nxcga ::/bin/nxcga
-cp ports/tandy1000/README.md target/root/TANDY.TXT
-mcopy -o -i image/hd.img target/root/TANDY.TXT ::/root/TANDY.TXT
-
-ia16-elf-as -o image/tandy-mbr.o ports/tandy1000/mbr.S
-ia16-elf-ld -T elks/elks-raw.ld -o image/tandy-mbr.bin image/tandy-mbr.o
-python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elks-tandy1000ex-cf16-smallcard.img
-
-# Verify image contents rather than just the staging directory.
-volume='image/elks-tandy1000ex-cf16-smallcard.img@@32256'
-mkdir -p image/tandy-verify
-for app in sh login getty elkfetch nxcga nxstart nano-x nxeyes nxtetris nxmine nxclock fm kilo invaders ttypong; do
-    mcopy -i "$volume" "::/bin/$app" "image/tandy-verify/$app"
-    test -s "image/tandy-verify/$app"
-done
-mcopy -i "$volume" ::/bootopts image/tandy-verify/bootopts
-mcopy -i "$volume" ::/root/.profile image/tandy-verify/profile
-cmp ports/tandy1000/bootopts image/tandy-verify/bootopts
-cmp ports/tandy1000/login.profile image/tandy-verify/profile
-cmp ports/tandy1000/nxcga image/tandy-verify/nxcga
-mdir -i "$volume" ::/bin
-cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
-
-# Offer a small update for an already-written card, using the actual packaged
-# executables (including their ELKS executable compression).
-mkdir -p image/tandy-console-update/bin
-cp image/tandy-verify/nxstart image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-console-update/bin/
-cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt
- "$mw/src/demos/nanox/nxedit.c"
-grep -q '^#define VISIBLE_ROWS     5
-cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
-
-$(BIN)nxeyes: nxeyes.o $(NXLIB)
-	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-MAKE
-make -C "$mw/src" -f Makefile.elks SCREEN_CGA=y
-make -C "$mw/src/demos/nanox" -f Makefile.elks ../../bin/nxeyes
-
-# Stage hardware-specific defaults without editing the shared rootfs template.
-template="$TOPDIR/image/tandy-template"
-cp -a elkscmd/rootfs_template "$template"
-cp ports/tandy1000/bootopts "$template/bootopts"
-cp ports/tandy1000/login.profile "$template/root/.profile"
-printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE=pc\nexport MOUSE_PORT=none\n' >> "$template/etc/profile"
-# The EX has no AT CMOS RTC. Its serial ports are reserved for mouse/terminal use.
-sed -i '/^clock -s /d' "$template/etc/rc.sys"
-printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"
-
-# Fit the target 31,360-sector card using 31 complete reference cylinders.
-# Reserve its initial track for the MBR. Use a 1 KiB-aligned partition size.
-make -C image TEMPLATE_DIR="$template" \
-    FAT_MKFSOPTS='-T 31184 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
-cp ports/tandy1000/nxcga target/bin/nxcga
-chmod 755 target/bin/nxcga
-mcopy -o -i image/hd.img target/bin/nxcga ::/bin/nxcga
-cp ports/tandy1000/README.md target/root/TANDY.TXT
-mcopy -o -i image/hd.img target/root/TANDY.TXT ::/root/TANDY.TXT
-
-ia16-elf-as -o image/tandy-mbr.o ports/tandy1000/mbr.S
-ia16-elf-ld -T elks/elks-raw.ld -o image/tandy-mbr.bin image/tandy-mbr.o
-python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elks-tandy1000ex-cf16-smallcard.img
-
-# Verify image contents rather than just the staging directory.
-volume='image/elks-tandy1000ex-cf16-smallcard.img@@32256'
-mkdir -p image/tandy-verify
-for app in sh login getty elkfetch nxcga nxstart nano-x nxeyes nxtetris nxmine nxclock fm kilo invaders ttypong; do
-    mcopy -i "$volume" "::/bin/$app" "image/tandy-verify/$app"
-    test -s "image/tandy-verify/$app"
-done
-mcopy -i "$volume" ::/bootopts image/tandy-verify/bootopts
-mcopy -i "$volume" ::/root/.profile image/tandy-verify/profile
-cmp ports/tandy1000/bootopts image/tandy-verify/bootopts
-cmp ports/tandy1000/login.profile image/tandy-verify/profile
-cmp ports/tandy1000/nxcga image/tandy-verify/nxcga
-mdir -i "$volume" ::/bin
-cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
-
-# Offer a small update for an already-written card, using the actual packaged
-# executables (including their ELKS executable compression).
-mkdir -p image/tandy-console-update/bin
-cp image/tandy-verify/nxstart image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-console-update/bin/
-cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt
- "$mw/src/demos/nanox/nxselect.c"
-grep -q '^#define stdrow 12
-cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
-
-$(BIN)nxeyes: nxeyes.o $(NXLIB)
-	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-MAKE
-make -C "$mw/src" -f Makefile.elks SCREEN_CGA=y
-make -C "$mw/src/demos/nanox" -f Makefile.elks ../../bin/nxeyes
-
-# Stage hardware-specific defaults without editing the shared rootfs template.
-template="$TOPDIR/image/tandy-template"
-cp -a elkscmd/rootfs_template "$template"
-cp ports/tandy1000/bootopts "$template/bootopts"
-cp ports/tandy1000/login.profile "$template/root/.profile"
-printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE=pc\nexport MOUSE_PORT=none\n' >> "$template/etc/profile"
-# The EX has no AT CMOS RTC. Its serial ports are reserved for mouse/terminal use.
-sed -i '/^clock -s /d' "$template/etc/rc.sys"
-printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"
-
-# Fit the target 31,360-sector card using 31 complete reference cylinders.
-# Reserve its initial track for the MBR. Use a 1 KiB-aligned partition size.
-make -C image TEMPLATE_DIR="$template" \
-    FAT_MKFSOPTS='-T 31184 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
-cp ports/tandy1000/nxcga target/bin/nxcga
-chmod 755 target/bin/nxcga
-mcopy -o -i image/hd.img target/bin/nxcga ::/bin/nxcga
-cp ports/tandy1000/README.md target/root/TANDY.TXT
-mcopy -o -i image/hd.img target/root/TANDY.TXT ::/root/TANDY.TXT
-
-ia16-elf-as -o image/tandy-mbr.o ports/tandy1000/mbr.S
-ia16-elf-ld -T elks/elks-raw.ld -o image/tandy-mbr.bin image/tandy-mbr.o
-python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elks-tandy1000ex-cf16-smallcard.img
-
-# Verify image contents rather than just the staging directory.
-volume='image/elks-tandy1000ex-cf16-smallcard.img@@32256'
-mkdir -p image/tandy-verify
-for app in sh login getty elkfetch nxcga nxstart nano-x nxeyes nxtetris nxmine nxclock fm kilo invaders ttypong; do
-    mcopy -i "$volume" "::/bin/$app" "image/tandy-verify/$app"
-    test -s "image/tandy-verify/$app"
-done
-mcopy -i "$volume" ::/bootopts image/tandy-verify/bootopts
-mcopy -i "$volume" ::/root/.profile image/tandy-verify/profile
-cmp ports/tandy1000/bootopts image/tandy-verify/bootopts
-cmp ports/tandy1000/login.profile image/tandy-verify/profile
-cmp ports/tandy1000/nxcga image/tandy-verify/nxcga
-mdir -i "$volume" ::/bin
-cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
-
-# Offer a small update for an already-written card, using the actual packaged
-# executables (including their ELKS executable compression).
-mkdir -p image/tandy-console-update/bin
-cp image/tandy-verify/nxstart image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-console-update/bin/
-cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt
- "$mw/src/demos/nanox/nxterm.c"
-cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
-
-$(BIN)nxeyes: nxeyes.o $(NXLIB)
-	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-MAKE
-make -C "$mw/src" -f Makefile.elks SCREEN_CGA=y
-make -C "$mw/src/demos/nanox" -f Makefile.elks ../../bin/nxeyes
-
-# Stage hardware-specific defaults without editing the shared rootfs template.
-template="$TOPDIR/image/tandy-template"
-cp -a elkscmd/rootfs_template "$template"
-cp ports/tandy1000/bootopts "$template/bootopts"
-cp ports/tandy1000/login.profile "$template/root/.profile"
-printf '\n# Tandy: serial mouse is selected with nxcga mouse.\nexport MOUSE_TYPE=pc\nexport MOUSE_PORT=none\n' >> "$template/etc/profile"
-# The EX has no AT CMOS RTC. Its serial ports are reserved for mouse/terminal use.
-sed -i '/^clock -s /d' "$template/etc/rc.sys"
-printf 'id:1:initdefault:\nsi::sysinit:/etc/rc.sys\nt1:1:respawn:/bin/getty /dev/tty1\n' > "$template/etc/inittab"
-
-# Fit the target 31,360-sector card using 31 complete reference cylinders.
-# Reserve its initial track for the MBR. Use a 1 KiB-aligned partition size.
-make -C image TEMPLATE_DIR="$template" \
-    FAT_MKFSOPTS='-T 31184 -s 63 -h 16 -M 512 -d 2 -r 32 -k -N 0 -c 2'
-cp ports/tandy1000/nxcga target/bin/nxcga
-chmod 755 target/bin/nxcga
-mcopy -o -i image/hd.img target/bin/nxcga ::/bin/nxcga
-cp ports/tandy1000/README.md target/root/TANDY.TXT
-mcopy -o -i image/hd.img target/root/TANDY.TXT ::/root/TANDY.TXT
-
-ia16-elf-as -o image/tandy-mbr.o ports/tandy1000/mbr.S
-ia16-elf-ld -T elks/elks-raw.ld -o image/tandy-mbr.bin image/tandy-mbr.o
-python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elks-tandy1000ex-cf16-smallcard.img
-
-# Verify image contents rather than just the staging directory.
-volume='image/elks-tandy1000ex-cf16-smallcard.img@@32256'
-mkdir -p image/tandy-verify
-for app in sh login getty elkfetch nxcga nxstart nano-x nxeyes nxtetris nxmine nxclock fm kilo invaders ttypong; do
-    mcopy -i "$volume" "::/bin/$app" "image/tandy-verify/$app"
-    test -s "image/tandy-verify/$app"
-done
-mcopy -i "$volume" ::/bootopts image/tandy-verify/bootopts
-mcopy -i "$volume" ::/root/.profile image/tandy-verify/profile
-cmp ports/tandy1000/bootopts image/tandy-verify/bootopts
-cmp ports/tandy1000/login.profile image/tandy-verify/profile
-cmp ports/tandy1000/nxcga image/tandy-verify/nxcga
-mdir -i "$volume" ::/bin
-cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
-
-# Offer a small update for an already-written card, using the actual packaged
-# executables (including their ELKS executable compression).
-mkdir -p image/tandy-console-update/bin
-cp image/tandy-verify/nxstart image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-console-update/bin/
 cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt
