@@ -51,9 +51,17 @@ Copy NXOLD along with NXSTART to make this fallback available.
 The new DeskMate app menu and alternative classic launcher require hardware
 testing.
 
-Nano-X now uses persistent server mode and the launcher reaps child processes
-from its event loop, not from the SIGCHLD handler, so closing an individual
-app should return to the launcher instead of ending the entire GUI. Closing
-Return to console still shuts down the session cleanly.
+Nano-X still runs in persistent server mode. Both launchers now avoid
+SIGCHLD signal handlers so application exit cannot interrupt Nano-X socket
+event waits. They reap application children during normal window events and
+ignore CLOSE_REQ events not addressed to the launcher window. The aim is
+that closing a utility or game leaves DeskMate running normally.
+
+If the GUI still unexpectedly returns to the shell, type:
+  cat /root/NXEXIT.TXT
+The supervisor writes which process exited (server or desktop), its exit
+status and signal, only on unexpected shutdown. This makes a remaining
+Nano-X server crash distinguishable from a launcher failure. Q/Esc and
+Ctrl+A intentionally terminate the graphics session.
 Video color modes, cursor response, app-close behavior, and shell return
 require hardware retest.
