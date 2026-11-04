@@ -143,7 +143,8 @@ If the graphical session still ends unexpectedly, the supervisor appends a
 short diagnostic to /root/NXEXIT.TXT, identifying whether nano-x (server) or
 the desktop process exited and its exit code or signal. Run
 'cat /root/NXEXIT.TXT' at the ELKS shell after a failure and report the output.
-Normal Q/Esc or Ctrl+A exits do not create a new diagnostic entry.
+A normal Q/Esc launcher exit creates no diagnostic. Ctrl+A intentionally
+ends the Nano-X server and may leave a `server exited code=0` entry.
 The application-close fix still requires confirmation on the real Tandy.
 Tetris uses N for a new game, J/K to move, D/F to rotate, Space to drop,
 P/C to pause/continue and Q to close. Its seven tetromino shapes now have
