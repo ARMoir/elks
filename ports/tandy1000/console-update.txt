@@ -5,7 +5,7 @@ partition layout, configuration and unrelated files.
 
 With ELKS shut down and the CF card in your PC's reader, copy all three files
 from the ZIP's bin folder into the CF card's BIN folder:
-  NXSTART, NXCLASSIC, NANO-X, NXCGA, NXTETRIS,
+  NXSTART, NXOLD, NANO-X, NXCGA, NXTETRIS,
   NXCALC, NXEDIT, NXSELECT, NXTERM, NXFILES
 Overwrite the old versions. Copy the files as-is; do not decompress them.
 The update also contains APPS.TXT; copy it to the card's ROOT folder
@@ -42,12 +42,12 @@ for Programs, Files, Tools, Games and System. Press 1-5 or Up/Down + Enter
 to run applications; Q or Esc returns to the console. Mouse clicks work.
 No animation or frequent timer redraws are used on the V20.
 
-Old launcher preserved in NXCLASSIC: run
+Old launcher preserved in NXOLD: run
   nxcga tandy mouse pc classic
 to restore its games menu and M for more. You can also use
   nxcga tandy none classic
 with no serial mouse. Video, mouse protocol and UI are separate options.
-Copy NXCLASSIC along with NXSTART to make this fallback available.
+Copy NXOLD along with NXSTART to make this fallback available.
 The new DeskMate app menu and alternative classic launcher require hardware
 testing.
 

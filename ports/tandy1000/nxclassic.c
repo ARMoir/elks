@@ -122,7 +122,7 @@ static int run_session(void)
         signal(SIGINT, SIG_DFL);
         signal(SIGTERM, SIG_DFL);
         signal(SIGHUP, SIG_DFL);
-        execl("/bin/nxclassic", "nxclassic", "--client", (char *)NULL);
+        execl("/bin/nxold", "nxold", "--client", (char *)NULL);
         _exit(127);
     }
     if (client_pid < 0) { client_pid = 0; goto done; }

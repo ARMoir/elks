@@ -99,7 +99,7 @@ Select an entry using keys 1-5, arrow keys and Enter, or click its row.
 Q/Esc returns to the text console. The System menu includes Help and About.
 
 The previous simple two-page launcher remains installed separately
-as `/bin/nxclassic`, and is started with `nxcga tandy mouse pc classic`.
+as `/bin/nxold`, and is started with `nxcga tandy mouse pc classic`.
 This option preserves the old game shortcuts and M to open extra apps.
 The choice of desktop is independent of graphics mode, mouse protocol
 and whether a serial mouse is enabled.

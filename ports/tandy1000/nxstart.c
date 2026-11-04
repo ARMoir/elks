@@ -135,7 +135,7 @@ done:
  *
  * No bitmap resources, external fonts, continuous refresh or animation:
  * V20/CGA hardware is redrawn only after exposure and direct input.
- * The previous simple launcher is preserved as /bin/nxclassic.
+ * The previous simple launcher is preserved as /bin/nxold.
  */
 #define DM_W 320
 #define DM_H 200

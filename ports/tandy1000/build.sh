@@ -37,7 +37,7 @@ grep -q 'block_colours\[state->next_shape.type\]' "$mw/src/demos/nanox/nxtetris.
 
 sed -i '/^CFLAGS += -DCONFIG_HW_VGA=1$/d' "$mw/src/demos/nanox/Makefile.elks"
 cp ports/tandy1000/nxstart.c "$mw/src/demos/nanox/nxstart.c"
-cp ports/tandy1000/nxclassic.c "$mw/src/demos/nanox/nxclassic.c"
+cp ports/tandy1000/nxold.c "$mw/src/demos/nanox/nxold.c"
 cp ports/nxeyes/nxeyes.c "$mw/src/demos/nanox/nxeyes.c"
 # The selected Microwindows revision defaults to a VGA-sized application window.
 # These edits are local to the Tandy image and keep windows within 320x200.
@@ -60,13 +60,13 @@ $(BIN)nxeyes: nxeyes.o $(NXLIB)
 $(BIN)nxfiles: nxfiles.o $(NXLIB)
 	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-$(BIN)nxclassic: nxclassic.o $(NXLIB)
+$(BIN)nxold: nxold.o $(NXLIB)
 	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 MAKE
 make -C "$mw/src" -f Makefile.elks SCREEN_CGA=y
-make -C "$mw/src/demos/nanox" -f Makefile.elks ../../bin/nxeyes ../../bin/nxfiles ../../bin/nxclassic
+make -C "$mw/src/demos/nanox" -f Makefile.elks ../../bin/nxeyes ../../bin/nxfiles ../../bin/nxold
 test -s "$mw/src/bin/nxfiles"
-test -s "$mw/src/bin/nxclassic"
+test -s "$mw/src/bin/nxold"
 
 # Stage hardware-specific defaults without editing the shared rootfs template.
 template="$TOPDIR/image/tandy-template"
@@ -97,7 +97,7 @@ python3 ports/tandy1000/make-image.py image/hd.img image/tandy-mbr.bin image/elk
 # Verify image contents rather than just the staging directory.
 volume='image/elks-tandy1000ex-cf16-smallcard.img@@32256'
 mkdir -p image/tandy-verify
-for app in sh login getty elkfetch nxcga nxstart nxclassic nano-x nxeyes nxtetris nxmine nxclock nxcalc nxedit nxselect nxterm nxfiles fm kilo invaders ttypong advent basic bc; do
+for app in sh login getty elkfetch nxcga nxstart nxold nano-x nxeyes nxtetris nxmine nxclock nxcalc nxedit nxselect nxterm nxfiles fm kilo invaders ttypong advent basic bc; do
     mcopy -i "$volume" "::/bin/$app" "image/tandy-verify/$app"
     test -s "image/tandy-verify/$app"
 done
@@ -112,6 +112,6 @@ cp ports/tandy1000/README.md image/elks-tandy1000ex-cf16-smallcard-README.txt
 # Offer a small update for an already-written card, using the actual packaged
 # executables (including their ELKS executable compression).
 mkdir -p image/tandy-console-update/bin
-cp image/tandy-verify/nxstart image/tandy-verify/nxclassic image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-verify/nxcalc image/tandy-verify/nxedit image/tandy-verify/nxselect image/tandy-verify/nxterm image/tandy-verify/nxfiles image/tandy-console-update/bin/
+cp image/tandy-verify/nxstart image/tandy-verify/nxold image/tandy-verify/nano-x image/tandy-verify/nxcga image/tandy-verify/nxtetris image/tandy-verify/nxcalc image/tandy-verify/nxedit image/tandy-verify/nxselect image/tandy-verify/nxterm image/tandy-verify/nxfiles image/tandy-console-update/bin/
 cp ports/tandy1000/APPS.txt image/tandy-console-update/APPS.TXT
 cp ports/tandy1000/console-update.txt image/tandy-console-update/README.txt
