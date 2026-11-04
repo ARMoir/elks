@@ -69,6 +69,25 @@ static void stop_session(int sig)
     if (server_pid > 0) kill(server_pid, SIGTERM);
 }
 
+/* Leave an actionable diagnostic when either Nano-X or the shell exits
+ * unexpectedly. FAT-friendly 8.3 filename; no writes during normal use.
+ */
+static void trace_exit(const char *component, int pid, int status)
+{
+    FILE *fp = fopen("/root/NXEXIT.TXT", "a");
+    if (!fp) return;
+    if (WIFEXITED(status))
+        fprintf(fp, "%s pid=%d exited code=%d\n",
+                component, pid, WEXITSTATUS(status));
+    else if (WIFSIGNALED(status))
+        fprintf(fp, "%s pid=%d killed signal=%d\n",
+                component, pid, WTERMSIG(status));
+    else
+        fprintf(fp, "%s pid=%d waitstatus=%d\n",
+                component, pid, status);
+    fclose(fp);
+}
+
 /* Keep a parent outside Nano-X's socket calls until both children have exited. */
 static int run_session(void)
 {
@@ -117,9 +136,23 @@ static int run_session(void)
     }
     if (client_pid < 0) { client_pid = 0; goto done; }
     do { pid = waitpid(-1, &status, 0); } while (pid < 0 && errno == EINTR);
-    if (pid == server_pid) server_pid = 0;
-    if (pid == client_pid) client_pid = 0;
-    if (pid > 0 && WIFEXITED(status)) result = WEXITSTATUS(status);
+    if (pid == server_pid) {
+        /* The screen server must never exit before our desktop client.
+         * This may expose a Nano-X client-disconnect bug on real hardware.
+         */
+        trace_exit("server", pid, status);
+        server_pid = 0;
+        result = 1;
+    } else if (pid == client_pid) {
+        /* An intentional Q/Esc returns 0. Any other exit is a fault. */
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+            trace_exit("desktop", pid, status);
+        result = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+        client_pid = 0;
+    } else if (pid > 0) {
+        trace_exit("unexpected-child", pid, status);
+        result = 1;
+    }
 done:
     stop_session(0);
     while (server_pid > 0 || client_pid > 0) {
