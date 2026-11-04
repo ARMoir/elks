@@ -187,7 +187,7 @@ static const DMItem menus[DM_CATS][DM_ITEMS] = {
 static int category;
 static int selected;
 static int screen_cols;
-static char status_line[54] = "Choose an accessory with mouse or keyboard";
+static char status_line[54] = "Select a DeskMate accessory";
 static const char *mode_name = "TANDY 16";
 
 /* Screen coordinates are relative to the 320x200 undecorated panel. */
@@ -223,7 +223,7 @@ static void draw_status(void)
     fill(0, 177, DM_W, 23, DARKBLUE);
     line(0, 176, DM_W-1, 176, CYAN);
     text(8, 187, status_line, WHITE);
-    text(8, 198, "P F T G S = menus   1-5 = run   Esc = exit", CYAN);
+    text(8, 198, "P/F/T/G/S menu   1-5 run   Esc exit", CYAN);
 }
 static void draw_tabs(void)
 {
@@ -300,7 +300,7 @@ static void change_category(int to)
     selected = 0;
     draw_tabs();
     draw_entries();
-    copy_status("Select 1-5 or click an accessory");
+    copy_status("1-5 or click to run accessory");
     draw_status();
 }
 static void launch_selected(void)
@@ -312,7 +312,7 @@ static void launch_selected(void)
             copy_status("ELKS DeskMate  -  Tandy V20 / Nano-X");
             break;
         case ACTION_HELP:
-            copy_status("Menus: P/F/T/G/S  Arrows: move  Enter: run");
+            copy_status("P/F/T/G/S menu   arrows, Enter run");
             break;
         case ACTION_CLASSIC:
             copy_status("From shell: nxcga tandy mouse pc classic");
@@ -325,7 +325,7 @@ static void launch_selected(void)
             return;
         case ACTION_RUN:
             if (!path || access(path, F_OK) != 0) {
-                copy_status("Application missing from this CF image");
+                copy_status("This application is not installed");
                 break;
             }
             if (vfork() == 0) {
@@ -336,7 +336,7 @@ static void launch_selected(void)
                 execl(path, path, (char *)NULL);
                 _exit(127);
             }
-            copy_status("Program launched; close it to return here");
+            copy_status("Close the app to return to DeskMate");
             break;
     }
     draw_status();
