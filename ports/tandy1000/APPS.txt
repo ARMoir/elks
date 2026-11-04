@@ -1,0 +1,57 @@
+Tandy 1000 EX - ELKS application guide (16 MB CompactFlash)
+
+NANO-X GRAPHICS:
+  nxcga tandy mouse pc   16-color Nano-X with Mouse Systems serial mouse
+  nxcga tandy none       16-color Nano-X using keyboard only
+  nxcga color none       4-color CGA desktop
+  nxcga mono none        Black-and-white desktop
+
+  Launcher page one: 1 Tetris, 2 Mines, 3 Clock, 4 Eyes, M More,
+                     Q Return to console.
+  Launcher page two: 1 Calculator (nxcalc)
+                     2 Text editor (nxedit)
+                     3 Files (nxfiles, read-only file manager/viewer)
+                     4 Terminal (nxterm, experimental on V20)
+                     5 File chooser (nxselect, outputs chosen path)
+                     B Back, Q Return to console.
+
+  Files browser: use the mouse or press 1-5 to open the visible
+  entries. U goes up or back, P/N switch pages, Q closes.
+  It can browse up to 180 entries per directory and preview text.
+  It intentionally does NOT edit, delete or rename files.
+  The graphical editor uses Ctrl+S to save, Esc to exit.
+
+GAMES AND EFFECTS ON THE CONSOLE:
+  advent       Text adventure (game database in /lib/advent.db)
+  tetris       Text-mode Tetris
+  invaders     Console Space Invaders (faster than windowed on V20)
+  ttypong      Console Pong
+  matrix       Matrix terminal animation
+  sl           Train animation
+
+EDITORS AND DEVELOPMENT:
+  basic        BASIC interpreter
+  bc           Command-line calculator
+  ecalc        Small calculator
+  kilo         Text editor: Ctrl+S save, Ctrl+Q quit
+  vi           Elvis vi editor
+  edit         Text-mode editor
+  fm           Console file manager
+  disasm       Disassembler
+  screen       Terminal multiplexer (may consume more RAM)
+
+SYSTEM / FILE UTILITIES:
+  ls cat grep sed find sort diff tar compress
+  df du meminfo ps uptime dmesg
+  clock date cal ttyclock
+  hd od fsck fdisk mkfat fsck-dos
+  miniterm ekermit    (serial programs, conflict with COM1 mouse)
+
+OTHER NOTES:
+  Many other ELKS shell utilities are in /bin, check 'ls /bin'.
+  Internet programs included by the base ELKS packages cannot function
+  without a network-capable kernel and hardware. Tandy image disables
+  CONFIG_INET and does not enable Ethernet drivers.
+  A 16 MB CF card increases storage, not conventional RAM.
+  Opening one demanding Nano-X app at a time is recommended on the V20.
+  These expanded GUI applications need real-hardware validation.

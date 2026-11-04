@@ -5,5 +5,7 @@ case `/bin/tty` in
         echo 'Tandy CF ready. fm = Files; kilo = Editor; invaders / ttypong = Games'
         echo 'Tandy GUI: nxcga mouse or nxcga none (16-color default)'
         echo 'Alternate graphics: nxcga color none; nxcga mono mouse'
+        echo 'More Nano-X apps: press M in the GUI launcher'
+        echo 'ELKS app catalog: /root/APPS.TXT'
         ;;
 esac

@@ -91,8 +91,16 @@ There is no VGA or PS/2 CDE desktop in this image. Graphics are opt-in.
 The old monochrome fallback is still available and unaffected by mouse choice.
 The apps remain sized for 200-line displays. Color modes and the screen
 restore path need confirmation on the physical Tandy.
-Nano-X, Tetris, Mines, Clock and Eyes are included with a small launcher sized
-for the 200-line display. At the shell, use:
+Nano-X, Tetris, Mines, Clock and Eyes are included with a small two-page
+launcher sized for the 200-line display. The first page preserves the original
+games and shortcuts. Press M for Calculator, Editor, Files, experimental
+Terminal and File Chooser; B returns to the first page. 1-5 activate
+applications on the current page, and Q still exits to the console.
+The graphical Files browser is a read-only preview tool ported from
+the earlier IBM PS/2 build, adapted to fit 320x200, with keyboard and mouse
+support. Calculator, editor, terminal and file chooser also have Tandy-sized
+windows. The 16 MB image includes more than 140 ELKS executables; see
+/root/APPS.TXT for a categorized guide. At the shell, use:
 
 ```text
 nxcga mouse        native Tandy 16 colors, serial mouse on COM1 (single port)
@@ -175,7 +183,9 @@ Emulation can check boot, different BIOS geometries, console apps and CGA
 graphics. The build verifies that color Tetris sources and its executable
 are present in the image. Actual seven-color output still needs visual
 confirmation on Tandy hardware. CF boot, CGA Tetris and usable game speed have been confirmed on the
-real V20-equipped Tandy. The revised Ctrl+A return to the shell needs retesting
+real V20-equipped Tandy. The expanded launcher, compact Files browser and other graphical app window
+sizes require real-hardware testing. The revised Ctrl+A return to the shell
+needs retesting
 there; physical serial-mouse movement is confirmed in 5-byte `pc` mode but
 lag remains to be retested with motion coalescing. The new 4-color and
 16-color video modes are still awaiting real-hardware verification.

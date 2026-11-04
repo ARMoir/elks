@@ -53,6 +53,8 @@ microwindows/src/bin/nxdsktop                       :nanox  :1232c
 microwindows/src/bin/nxjpeg                         :nanox  :1232c
 microwindows/src/bin/nxmsg                          :nanox  :1232c
 microwindows/src/bin/nxselect                       :nanox  :1232c
+# Compact Tandy graphical file browser is only selected by Tandy image tag.
+microwindows/src/bin/nxfiles                        :tandyfiles
 microwindows/src/demos/nanox/images/girl1.jpg ::root/girl1.jpg :nanox
 microwindows/src/demos/nanox/images/earth.jpg ::root/earth.jpg :nanox
 dflat/memopad                                       :dflat              :2880k
