@@ -103,6 +103,14 @@ as `/bin/nxold`, and is started with `nxcga tandy mouse pc classic`.
 This option preserves the old game shortcuts and M to open extra apps.
 The choice of desktop is independent of graphics mode, mouse protocol
 and whether a serial mouse is enabled.
+Terminal window rendering is also corrected for 320x200: when text wraps
+at the right edge on the bottom row, nxterm now scrolls and clamps the
+cursor back to the final visible row. The previous behavior allowed each
+wrapped line to render successively lower than the terminal window,
+producing the overdraw seen with large elkfetch/system-info output. Both
+mouse and keyboard input are unchanged. This graphics fix needs validation
+on the physical Tandy.
+
 Terminal (nxterm) now has a Tandy-specific PTY startup path. It uses
 `vfork()` rather than duplicating the graphical process with `fork()`,
 which may exceed conventional memory on a 640 KB machine. Terminal also
