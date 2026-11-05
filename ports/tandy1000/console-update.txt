@@ -51,6 +51,16 @@ Copy NXOLD along with NXSTART to make this fallback available.
 The new DeskMate app menu and alternative classic launcher require hardware
 testing.
 
+Terminal (NXTERM) is rebuilt specifically for 640 KB Tandy systems.
+It starts the /bin/sh PTY child with vfork() to reduce memory pressure,
+handles SIGCHLD/SIGPIPE outside Nano-X signal handlers and records any
+startup error or shell exit in /root/NXTERM.TXT.
+If Terminal immediately disappears but DeskMate is still running, exit
+the desktop normally and type:
+  cat /root/NXTERM.TXT
+The next test should be: open Terminal, type 'echo hello', exit the shell,
+and confirm DeskMate is still open. No working mouse/graphics code changed.
+
 Nano-X still runs in persistent server mode. Both launchers now avoid
 SIGCHLD signal handlers so application exit cannot interrupt Nano-X socket
 event waits. They reap application children during normal window events and
