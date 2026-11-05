@@ -51,6 +51,12 @@ Copy NXOLD along with NXSTART to make this fallback available.
 The new DeskMate app menu and alternative classic launcher require hardware
 testing.
 
+New: NXTERM also fixes line wrapping at the bottom of its 12-line window.
+Previously it scrolled without restoring the cursor to the last visible row,
+causing wrapped shell output to draw over the DeskMate desktop. Long output
+such as elkfetch and repeated command results should now stay in the window.
+This must still be verified on the real Tandy.
+
 Terminal (NXTERM) is rebuilt specifically for 640 KB Tandy systems.
 It starts the /bin/sh PTY child with vfork() to reduce memory pressure,
 handles SIGCHLD/SIGPIPE outside Nano-X signal handlers and records any
