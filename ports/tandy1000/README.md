@@ -103,6 +103,16 @@ as `/bin/nxold`, and is started with `nxcga tandy mouse pc classic`.
 This option preserves the old game shortcuts and M to open extra apps.
 The choice of desktop is independent of graphics mode, mouse protocol
 and whether a serial mouse is enabled.
+Terminal (nxterm) now has a Tandy-specific PTY startup path. It uses
+`vfork()` rather than duplicating the graphical process with `fork()`,
+which may exceed conventional memory on a 640 KB machine. Terminal also
+handles child and pipe signals without calling graphics APIs from inside
+the handlers. If it still immediately returns to DeskMate, check
+`cat /root/NXTERM.TXT` at the shell. A message such as
+`open PTY master errno: ...`, `vfork failed errno: ...`, or
+`shell wait status: ...` identifies which stage failed. This fix and
+terminal responsiveness must still be checked on real hardware.
+
 The graphical Files browser is a read-only preview tool ported from
 the earlier IBM PS/2 build, adapted to fit 320x200, with keyboard and mouse
 support. Calculator, editor, terminal and file chooser also have Tandy-sized
