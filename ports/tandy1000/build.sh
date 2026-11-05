@@ -57,6 +57,9 @@ grep -qF '#define VISIBLE_ROWS     5' "$mw/src/demos/nanox/nxselect.c"
 grep -qF '#define stdrow 12' "$mw/src/demos/nanox/nxterm.c"
 grep -qF 'child_pid = vfork();' "$mw/src/demos/nanox/nxterm.c"
 grep -qF 'terminal_log("shell wait status", child_status)' "$mw/src/demos/nanox/nxterm.c"
+# Guard against cursor walking off the bottom of the Tandy graphics window
+# when lengthy shell startup output wraps at the last terminal row.
+grep -qF 'Without this clamp every wrapped line continues below' "$mw/src/demos/nanox/nxterm.c"
 cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
 
 $(BIN)nxeyes: nxeyes.o $(NXLIB)
