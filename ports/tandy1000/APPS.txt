@@ -19,6 +19,8 @@ NANO-X GRAPHICS:
   Files browser: use the mouse or press 1-5 to open the visible
   entries. U goes up or back, P/N switch pages, Q closes.
   It can browse up to 180 entries per directory and preview text.
+  Terminal uses a memory-saving PTY shell startup on the 640 KB Tandy.
+  If it closes immediately, inspect /root/NXTERM.TXT for its error stage.
   It intentionally does NOT edit, delete or rename files.
   The graphical editor uses Ctrl+S to save, Esc to exit.
 
