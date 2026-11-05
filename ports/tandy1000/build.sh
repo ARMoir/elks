@@ -38,6 +38,9 @@ grep -q 'block_colours\[state->next_shape.type\]' "$mw/src/demos/nanox/nxtetris.
 sed -i '/^CFLAGS += -DCONFIG_HW_VGA=1$/d' "$mw/src/demos/nanox/Makefile.elks"
 cp ports/tandy1000/nxstart.c "$mw/src/demos/nanox/nxstart.c"
 cp ports/tandy1000/nxclassic.c "$mw/src/demos/nanox/nxold.c"
+# ELKS 640 KB: avoid nxterm's memory-hungry fork() and unsafe SIGCHLD
+# GrClose(). Retain a diagnostic in /root/NXTERM.TXT for shell failures.
+cp ports/tandy1000/nxterm_tandy.c "$mw/src/demos/nanox/nxterm.c"
 cp ports/nxeyes/nxeyes.c "$mw/src/demos/nanox/nxeyes.c"
 # The selected Microwindows revision defaults to a VGA-sized application window.
 # These edits are local to the Tandy image and keep windows within 320x200.
@@ -52,6 +55,8 @@ grep -qF '#define WIN_H  156' "$mw/src/demos/nanox/nxcalc.c"
 grep -qF '#define COLS            36' "$mw/src/demos/nanox/nxedit.c"
 grep -qF '#define VISIBLE_ROWS     5' "$mw/src/demos/nanox/nxselect.c"
 grep -qF '#define stdrow 12' "$mw/src/demos/nanox/nxterm.c"
+grep -qF 'child_pid = vfork();' "$mw/src/demos/nanox/nxterm.c"
+grep -qF 'terminal_log("shell wait status", child_status)' "$mw/src/demos/nanox/nxterm.c"
 cat >> "$mw/src/demos/nanox/Makefile.elks" <<'MAKE'
 
 $(BIN)nxeyes: nxeyes.o $(NXLIB)
