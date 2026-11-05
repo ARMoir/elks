@@ -1083,8 +1083,14 @@ esc0(unsigned char c)
                 curx = col - 1;
             else {
                 curx = 0;
-                if (++cury >= scrollbottom)
+                if (++cury >= scrollbottom) {
+                    /* Keep the cursor INSIDE the terminal after scrolling.
+                     * Without this clamp every wrapped line continues below
+                     * the window, corrupting the DeskMate screen.
+                     */
                     vscrollup(1);
+                    cury = scrollbottom - 1;
+                }
             }
         }
         break;
