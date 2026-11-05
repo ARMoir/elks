@@ -1149,6 +1149,21 @@ init(void)
 /*
  * general code...
  */
+/* Never call Nano-X APIs from a signal handler. In particular, closing
+ * graphics from SIGCHLD can corrupt the socket/event state on ELKS.
+ */
+static volatile int child_seen;
+static volatile int pipe_seen;
+
+static void
+terminal_log(const char *stage, int number)
+{
+    FILE *fp = fopen("/root/NXTERM.TXT", "a");
+    if (!fp) return;
+    fprintf(fp, "%s: %d\n", stage, number);
+    fclose(fp);
+}
+
 void
 term(void)
 {
@@ -1633,21 +1648,6 @@ maximize(void)
 }
 
 #endif
-
-/* Never call Nano-X APIs from a signal handler. In particular, closing
- * graphics from SIGCHLD can corrupt the socket/event state on ELKS.
- */
-static volatile int child_seen;
-static volatile int pipe_seen;
-
-static void
-terminal_log(const char *stage, int number)
-{
-    FILE *fp = fopen("/root/NXTERM.TXT", "a");
-    if (!fp) return;
-    fprintf(fp, "%s: %d\n", stage, number);
-    fclose(fp);
-}
 
 static void
 sigpipe(int sig)
